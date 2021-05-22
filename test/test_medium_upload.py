@@ -1,6 +1,7 @@
 from io import BytesIO
-import pytest
 import subprocess
+
+import pytest
 
 
 def test_cannot_upload_medium_without_login(client):

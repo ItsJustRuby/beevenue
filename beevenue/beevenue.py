@@ -15,7 +15,7 @@ from .auth.auth import init as auth_init_app
 from .auth.routes import blueprint as auth_bp
 from .cache import init_app as cache_init_app
 from .cli import init_cli
-from .core import graphql_routes, media_routes, routes, tag_routes
+from .core import batch_routes, graphql_routes, media_routes, routes, tag_routes
 from .db import db
 from .db import init_app as db_init_app
 from .flask import BeevenueFlask
@@ -65,6 +65,7 @@ def get_application(
         application.register_blueprint(auth_bp)
         application.register_blueprint(routes.bp)
         application.register_blueprint(tag_routes.bp)
+        application.register_blueprint(batch_routes.bp)
         application.register_blueprint(media_routes.bp)
         application.register_blueprint(graphql_routes.bp)
         application.register_blueprint(spindex_bp)

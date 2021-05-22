@@ -1,5 +1,6 @@
-import pytest
 import subprocess
+
+import pytest
 
 
 def test_thumbnail_picks_generate(client, asAdmin, nsfw, withVideo):

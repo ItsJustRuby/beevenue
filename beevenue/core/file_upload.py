@@ -1,27 +1,27 @@
 from enum import Enum
 from hashlib import md5
+from io import BytesIO
 import re
-from typing import Literal, Optional, Tuple, TypedDict, Union
+from typing import Literal, Optional, Tuple, TypedDict, Union, Any
 
 from flask import g
 import magic
-from werkzeug.datastructures import FileStorage
 
 from beevenue import paths
-from beevenue.flask import EXTENSIONS
+from beevenue.extensions import EXTENSIONS
 from beevenue.io import HelperBytesIO
 
 from ..models import Medium
 from ..signals import medium_added
 from .medium_update import update_rating, update_tags
 
-Uploadable = Union[HelperBytesIO, FileStorage]
+Uploadable = Union[HelperBytesIO, Any]
 
 TAGGY_FILENAME_REGEX = re.compile(r"^\d+ - (?P<tags>.*)\.([a-zA-Z0-9]+)$")
 
 RATING_TAG_REGEX = re.compile(r"rating:(?P<rating>u|q|s|e)")
 
-Readable = Union[HelperBytesIO, FileStorage]
+Readable = Union[HelperBytesIO, BytesIO]
 
 
 def _md5sum(stream: Readable) -> str:

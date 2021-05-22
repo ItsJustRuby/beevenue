@@ -3,10 +3,12 @@ from typing import Any
 from flask import jsonify
 
 from .core.detail import MediumDetail
+from .core.search.batch_search_results import BatchSearchResults
 from .core.search.pagination import Pagination
 from .core.tags.tag_summary import TagSummary
 from .models import Tag
 from .viewmodels import (
+    batch_search_results_schema,
     medium_detail_schema,
     pagination_schema,
     tag_show_schema,
@@ -18,6 +20,7 @@ SCHEMAS = {
     Tag: tag_show_schema,
     Pagination: pagination_schema,
     TagSummary: tag_summary_schema,
+    BatchSearchResults: batch_search_results_schema,
 }
 
 

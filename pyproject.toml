@@ -16,11 +16,12 @@ max-line-length = 80
 
 [tool.pylint.typecheck]
 # old-style SQLAlchemy tables are broken without this
-ignored-classes = [ "Table" ]
+ignored-classes = [ "Table", "Column" ]
 
 [tool.pylint.all]
 # black and pylint don't agree on continuations. black is less wrong though.
 disable = """
+assigning-non-slot,
 too-few-public-methods,
 too-many-ancestors,
 too-many-arguments,

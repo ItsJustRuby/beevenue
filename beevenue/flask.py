@@ -6,18 +6,9 @@ from flask import current_app, Flask, Request
 from flask import request as flask_request
 
 from .convert import decorate_response, try_convert_model
+from .extensions import EXTENSIONS
 from .spindex.interface import SpindexSessionFactory
 from .types import MediumDocument
-
-EXTENSIONS = {
-    "video/mp4": "mp4",
-    "video/webm": "webm",
-    "video/x-matroska": "mkv",
-    "image/png": "png",
-    "image/gif": "gif",
-    "image/jpeg": "jpg",
-    "image/jpg": "jpg",
-}
 
 
 class BeevenueContext:

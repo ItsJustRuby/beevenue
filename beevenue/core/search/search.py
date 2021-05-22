@@ -6,6 +6,7 @@ from beevenue.flask import BeevenueContext, request
 
 from ...types import MediumDocument
 
+from .batch_search_results import BatchSearchResults
 from .pagination import Pagination
 from .parse import parse_search_terms
 from .base import SearchTerm
@@ -13,7 +14,16 @@ from .simple import Negative, RatingSearchTerm
 
 
 def find_all() -> Pagination[MediumDocument]:
-    return _run(set())
+    return _run_paginated(set())
+
+
+def run_unpaginated(search_term_list: List[str]) -> BatchSearchResults:
+    search_terms = parse_search_terms(search_term_list)
+
+    if not search_terms:
+        return BatchSearchResults.empty()
+
+    return _run_unpaginated(search_terms)
 
 
 def run(search_term_list: List[str]) -> Pagination[MediumDocument]:
@@ -22,10 +32,17 @@ def run(search_term_list: List[str]) -> Pagination[MediumDocument]:
     if not search_terms:
         return Pagination.empty()
 
-    return _run(search_terms)
+    return _run_paginated(search_terms)
 
 
-def _run(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
+def _run_unpaginated(search_terms: Set[SearchTerm]) -> BatchSearchResults:
+    context = request.beevenue_context
+    medium_ids = _search(context, search_terms)
+
+    return BatchSearchResults(list(g.spindex.get_media(medium_ids)))
+
+
+def _run_paginated(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
     context = request.beevenue_context
     medium_ids = _search(context, search_terms)
 

@@ -4,7 +4,7 @@ from typing import Literal, Optional, TypedDict, Union
 from flask import g
 from werkzeug.datastructures import FileStorage
 
-from beevenue.flask import EXTENSIONS
+from beevenue.extensions import EXTENSIONS
 from . import thumbnails
 from ..models import Medium
 from ..signals import medium_updated

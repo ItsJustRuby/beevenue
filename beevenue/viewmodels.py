@@ -3,6 +3,9 @@ from typing import List, Optional
 
 from marshmallow import fields, Schema
 
+from beevenue import paths
+
+from .core.search.batch_search_results import BatchSearchResults
 from .models import Tag
 from .types import MediumDocument
 
@@ -34,6 +37,15 @@ class _PaginationMediumSchema(_MediumDocumentSchema):
         if obj.tiny_thumbnail:
             return base64.b64encode(obj.tiny_thumbnail).decode("utf-8")
         return None
+
+
+class _BatchSearchResultsSchema(Schema):
+    items = fields.Method("get_items")
+
+    def get_items(self, obj: BatchSearchResults) -> List[str]:
+        return [
+            paths.medium_filename(x.medium_hash, x.mime_type) for x in obj.items
+        ]
 
 
 class _PaginationSchema(Schema):
@@ -91,5 +103,6 @@ class _TagSummarySchema(Schema):
 
 medium_detail_schema = _MediumDocumentDetailSchema()
 pagination_schema = _PaginationSchema()
+batch_search_results_schema = _BatchSearchResultsSchema()
 tag_summary_schema = _TagSummarySchema()
 tag_show_schema = _TagShowSchema()

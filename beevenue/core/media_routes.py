@@ -1,3 +1,5 @@
+from typing import Any
+
 from flask import make_response, render_template, send_file, Blueprint
 
 from beevenue.flask import request
@@ -50,7 +52,7 @@ def update_medium_metadata(medium_id: int):  # type: ignore
     Note: This is *not* used to update the medium itself.
     See the /file endpoint for that.
     """
-    body = request.json
+    body: Any = request.json
 
     success = update_medium(
         medium_id,
@@ -102,7 +104,7 @@ def replace_medium_file(medium_id: int):  # type: ignore
     if not request.files:
         return notifications.simple_error("You must supply a file"), 400
 
-    stream = next(request.files.values())
+    stream: Any = next(request.files.values())
     error = replace_medium(medium_id, stream)
 
     if not error:

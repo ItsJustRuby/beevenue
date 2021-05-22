@@ -1,3 +1,5 @@
+from typing import Any
+
 from flask import Blueprint
 
 from beevenue.flask import request
@@ -23,7 +25,7 @@ bp = Blueprint("tags", __name__)
 @permissions.is_owner
 @update_tag_schema
 def patch_tag(tag_name: str):  # type: ignore
-    body = request.json
+    body: Any = request.json
     success, error_or_tag = update.update(tag_name, body)
     if not success:
         return error_or_tag, 400

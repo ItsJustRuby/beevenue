@@ -7,11 +7,22 @@ from ..schemas import (
 )
 
 
-class _SearchQueryParamsSchema(PaginationQueryParamsSchema):
+class _BatchSearchQueryParamsSchema(Schema):
     q = fields.String(required=True)
 
 
+class _SearchQueryParamsSchema(
+    _BatchSearchQueryParamsSchema, PaginationQueryParamsSchema
+):
+    pass
+
+
 search_query_params_schema = requires_query_params(_SearchQueryParamsSchema())
+
+
+batch_search_query_params_schema = requires_query_params(
+    _BatchSearchQueryParamsSchema()
+)
 
 
 class _UpdateTagSchema(Schema):

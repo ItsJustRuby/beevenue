@@ -8,7 +8,7 @@ from PIL import Image
 from flask import current_app, g
 
 from beevenue import paths
-from beevenue.flask import EXTENSIONS
+from beevenue.extensions import EXTENSIONS
 
 from . import ffmpeg
 from ..models import Medium

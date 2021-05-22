@@ -10,13 +10,12 @@ from .decorators import RequirementDecorator, requires
 
 def requires_query_params(schema: Schema) -> RequirementDecorator:
     """Validate requests' query params against the specified schema."""
-
     return _requires_schema(lambda r: schema.validate(r.args))
 
 
 def requires_json_body(schema: Schema) -> RequirementDecorator:
     """Validate requests' json body against the specified schema."""
-    return _requires_schema(lambda r: schema.validate(r.json))
+    return _requires_schema(lambda r: schema.validate(r.json))  # type: ignore
 
 
 def _requires_schema(
