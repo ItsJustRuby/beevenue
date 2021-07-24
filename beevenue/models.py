@@ -106,6 +106,8 @@ class MediumTagAbsence(db.Model):
         db.Integer, db.ForeignKey("tag.id"), index=True, nullable=False
     )
 
+    __table_args__ = (db.UniqueConstraint("medium_id", "tag_id"),)
+
     tag = db.relationship(Tag, lazy="joined")
     medium = db.relationship("Medium", lazy="joined")
 
