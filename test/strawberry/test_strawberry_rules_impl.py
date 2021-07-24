@@ -8,7 +8,7 @@ from beevenue.strawberry.common import (
 from beevenue.strawberry.iff import All
 from beevenue.strawberry.json import RuleEncoder, RulePartEncoder
 from beevenue.strawberry.rule import Rule
-from beevenue.strawberry.then import Fail
+from beevenue.strawberry.then import Fail, HasAllTagsAbsentOrPresent
 
 rules = [
     Rule(HasRating("u"), [Fail()]),
@@ -16,6 +16,7 @@ rules = [
     Rule(HasAnyTagsLike("x:.*"), [HasRating("q")]),
     Rule(HasAnyTagsIn("forbidden"), [HasAnyTagsIn("knowledge")]),
     Rule(All(), [HasRating()]),
+    Rule(All(), [HasAllTagsAbsentOrPresent("forbidden")]),
 ]
 
 

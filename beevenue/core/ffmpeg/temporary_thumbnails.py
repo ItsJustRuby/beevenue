@@ -84,7 +84,7 @@ def temporary_thumbnails(
 
     length_in_seconds = _get_length_in_seconds(in_path)
 
-    temp_dir = TemporaryDirectory()
+    temp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
     out_pattern = Path(temp_dir.name, "out_%03d.jpg")
 
     cmd = [

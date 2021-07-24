@@ -30,6 +30,7 @@ def test_spindexed_medium_internals():
         "q",
         bytes(),
         SpindexedMediumTagNames([], []),
+        set(),
     )
     assert len(medium.__str__()) > 0
     assert len(medium.__repr__()) > 0

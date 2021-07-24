@@ -65,5 +65,31 @@
                 "type": "fail"
             }
         ]
+    },
+    {
+        "if": {
+            "type": "all"
+        },
+        "then": [
+            {
+                "data": [
+                    "c:tinkerbell"
+                ],
+                "type": "hasAllAbsentOrPresent"
+            }
+        ]
+    },
+    {
+        "if": {
+            "type": "all"
+        },
+        "then": [
+            {
+                "data": [
+                    "A"
+                ],
+                "type": "hasAllAbsentOrPresent"
+            }
+        ]
     }
 ]

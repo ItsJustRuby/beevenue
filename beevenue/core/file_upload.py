@@ -66,7 +66,7 @@ def _maybe_add_tags(medium: Medium, file: Uploadable) -> None:
         for (chunk, match) in ratings:
             tags.remove(chunk)
 
-    update_tags(medium, tags)
+    update_tags(medium, set(tags))
     if rating:
         update_rating(medium, rating)
 

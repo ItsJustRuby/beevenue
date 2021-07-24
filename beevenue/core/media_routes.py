@@ -47,17 +47,15 @@ def get_medium(medium_id: int):  # type: ignore
 @bp.route("/medium/<int:medium_id>/metadata", methods=["PATCH"])
 @permissions.is_owner
 def update_medium_metadata(medium_id: int):  # type: ignore
-    """Update some or all of the medium's metadata (e.g. rating).
+    """Update the medium's metadata (e.g. rating, tags).
 
-    Note: This is *not* used to update the medium itself.
+    Note: This is *not* used to update the medium file itself.
     See the /file endpoint for that.
     """
     body: Any = request.json
 
     success = update_medium(
-        medium_id,
-        body.get("rating", None),
-        body.get("tags", None),
+        medium_id, body["rating"], body["tags"], body["absentTags"]
     )
 
     if success:

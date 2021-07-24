@@ -96,6 +96,20 @@ MediaTags = db.Table(
 )
 
 
+class MediumTagAbsence(db.Model):
+    __tablename__ = "mediumTagAbsence"
+    id = db.Column(db.Integer, primary_key=True)
+    medium_id = db.Column(
+        db.Integer, db.ForeignKey("medium.id"), index=True, nullable=False
+    )
+    tag_id = db.Column(
+        db.Integer, db.ForeignKey("tag.id"), index=True, nullable=False
+    )
+
+    tag = db.relationship(Tag, lazy="joined")
+    medium = db.relationship("Medium", lazy="joined")
+
+
 class Medium(db.Model):
     __tablename__ = "medium"
     id = db.Column(db.Integer, primary_key=True)
@@ -115,16 +129,25 @@ class Medium(db.Model):
         backref=db.backref("media", lazy="joined"),
     )
 
+    absent_tags = db.relationship(
+        "Tag",
+        secondary="mediumTagAbsence",
+        lazy="joined",
+        backref=db.backref("absent_in_media", lazy="joined"),
+    )
+
     def __init__(
         self,
         medium_hash: str,
         mime_type: str,
         rating: str = "u",
         tags: List[Tag] = None,
+        absent_tags: List[Tag] = None,
         aspect_ratio: Optional[float] = None,
     ):
         self.rating = rating
         self.mime_type = mime_type
         self.hash = medium_hash
         self.tags = tags or []
+        self.absent_tags = absent_tags or []
         self.aspect_ratio = aspect_ratio

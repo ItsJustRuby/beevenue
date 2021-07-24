@@ -22,6 +22,7 @@ class MediumDocument(ABC):
         "rating",
         "tiny_thumbnail",
         "tag_names",
+        "absent_tag_names",
     ]
 
     medium_id: int
@@ -31,3 +32,4 @@ class MediumDocument(ABC):
     rating: str
     tiny_thumbnail: bytes
     tag_names: TagNamesField
+    absent_tag_names: Set[str]

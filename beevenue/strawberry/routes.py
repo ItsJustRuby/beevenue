@@ -23,7 +23,7 @@ def _persist(rules_list: List[Rule]) -> None:
 def _pretty_print(rule_breaks: Dict[int, List[Rule]]) -> Dict[int, List[str]]:
     json_helper = {}
     for medium_id, broken_rules in rule_breaks.items():
-        json_helper[medium_id] = list([r.pprint() for r in broken_rules])
+        json_helper[medium_id] = [r.pprint() for r in broken_rules]
 
     return json_helper
 

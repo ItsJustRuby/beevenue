@@ -51,7 +51,7 @@ def get_application(
     db.init_app(application)
     Migrate(application, db)
 
-    sentry_sdk.init(
+    sentry_sdk.init(  # pylint: disable=abstract-class-instantiated
         dsn=application.config["SENTRY_DSN"],
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
     )

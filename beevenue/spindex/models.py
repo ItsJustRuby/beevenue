@@ -14,7 +14,9 @@ class SpindexedMediumTagNames(TagNamesField):
         self.searchable = set(searchable)
 
 
-class SpindexedMedium(MediumDocument):
+class SpindexedMedium(
+    MediumDocument
+):  # pylint: disable=too-many-instance-attributes
     """In-memory representation of a medium."""
 
     __slots__: List[str] = []
@@ -24,6 +26,7 @@ class SpindexedMedium(MediumDocument):
         medium: Medium,
         innate_tag_names: Set[str],
         searchable_tag_names: Set[str],
+        absent_tag_names: Set[str],
     ) -> "SpindexedMedium":
         """Create in-memory representation of a Medium from the SQL database."""
 
@@ -35,6 +38,7 @@ class SpindexedMedium(MediumDocument):
             medium.rating,
             medium.tiny_thumbnail,
             SpindexedMediumTagNames(innate_tag_names, searchable_tag_names),
+            absent_tag_names,
         )
 
     def __init__(
@@ -46,6 +50,7 @@ class SpindexedMedium(MediumDocument):
         rating: str,
         tiny_thumbnail: bytes,
         tag_names: SpindexedMediumTagNames,
+        absent_tag_names: Set[str],
     ) -> None:
         self.medium_id = medium_id  # pylint: disable=invalid-name
         self.aspect_ratio = aspect_ratio
@@ -54,6 +59,7 @@ class SpindexedMedium(MediumDocument):
         self.rating = rating
         self.tiny_thumbnail = tiny_thumbnail
         self.tag_names = tag_names
+        self.absent_tag_names = absent_tag_names
 
     def __str__(self) -> str:
         return f"<SpindexedMedium {self.medium_id}>"

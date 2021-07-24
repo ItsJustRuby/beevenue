@@ -103,8 +103,7 @@ def _paginate(ids: List[TItem]) -> Pagination[TItem]:
     page_number = int(page_number_arg)
     page_size = int(page_size_arg)
 
-    if page_number < 1:
-        page_number = 1
+    page_number = max(page_number, 1)
 
     if page_size < 1:
         return Pagination(

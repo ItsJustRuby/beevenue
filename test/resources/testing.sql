@@ -15,6 +15,10 @@ INSERT INTO `tag` VALUES (3001, 's:2d', 's');
 INSERT INTO `tag` VALUES (4001, 'tobecensored', 'q');
 INSERT INTO `tag` VALUES (4002, 'tobecensoredtoo', 'e');
 
+INSERT INTO `tag` VALUES (5000, 'foo', 's');
+INSERT INTO `tag` VALUES (5001, 'bar', 's');
+INSERT INTO `tag` VALUES (5002, 'y:x', 's');
+
 INSERT INTO `tagImplication` VALUES (2001, 2000);
 INSERT INTO `tagImplication` VALUES (2002, 2000);
 INSERT INTO `tagImplication` VALUES (4001, 4002);
@@ -33,6 +37,8 @@ INSERT INTO `medium` VALUES (9, 'hash9', 'image/jpg', 1.5, 's', NULL);
 INSERT INTO `medium` VALUES (10, 'hash10', 'image/jpg', 1.5, 's', NULL);
 INSERT INTO `medium` VALUES (11, 'hash11', 'image/jpg', 1.5, 's', NULL);
 INSERT INTO `medium` VALUES (12, 'hash12', 'image/jpg', 1.5, 'q', x'deadbeef');
+INSERT INTO `medium` VALUES (13, 'hash13', 'image/jpg', 1.5, 's', NULL);
+INSERT INTO `medium` VALUES (14, 'hash14', 'image/jpg', 1.5, 's', NULL);
 
 -- medium_id, tag_id
 INSERT INTO `medium_tag` VALUES (1, 1000);
@@ -55,6 +61,12 @@ INSERT INTO `medium_tag` VALUES (8, 4001);
 INSERT INTO `medium_tag` VALUES (9, 4001);
 INSERT INTO `medium_tag` VALUES (10, 4001);
 INSERT INTO `medium_tag` VALUES (11, 4001);
+
+INSERT INTO `medium_tag` VALUES (14, 5002);
+
+INSERT INTO `mediumTagAbsence` VALUES (1, 13, 1000); -- Medium 13, "A" absent
+INSERT INTO `mediumTagAbsence` VALUES (2, 14, 5000); -- Medium 14, "foo" absent
+INSERT INTO `mediumTagAbsence` VALUES (3, 14, 5001); -- Medium 13, "bar" absent
 
 -- username/password 'admin'/'admin'
 INSERT INTO `user` VALUES (1, 'admin', '$2y$12$57DpiLm0eSz9NT8THnsvzOZ8k4rtAZjOOp3zjXpmFI/YoqXG/tiNK', 'admin');

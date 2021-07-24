@@ -10,6 +10,11 @@ class FailJson(TypedDict):
     type: Literal["fail"]
 
 
+class HasAllTagsAbsentOrPresentJson(TypedDict):
+    type: Literal["hasAllAbsentOrPresent"]
+    data: List[str]
+
+
 class HasAnyRatingJson(TypedDict):
     type: Literal["hasRating"]
 
@@ -35,6 +40,7 @@ RuleJson = Union[
     HasAnyRatingJson,
     HasSpecificRatingJson,
     HasAnyTagsInJson,
+    HasAllTagsAbsentOrPresentJson,
     HasAnyTagsLikeJson,
 ]
 

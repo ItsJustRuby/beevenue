@@ -1,6 +1,7 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
+from beevenue.types import MediumDocument
 import re
-from typing import FrozenSet, List, Optional
+from typing import FrozenSet, List, Optional, Any
 
 from flask import g
 
@@ -42,7 +43,7 @@ class IffAndThen(Iff, Then):
     Sum[Iff, Then], only Union[Iff, Then]."""
 
 
-class HasAnyTags(RulePart):
+class TagsRulePart(RulePart):
     """Abstract base class for rule parts that checks for presence of tags."""
 
     def __init__(self) -> None:
@@ -51,9 +52,14 @@ class HasAnyTags(RulePart):
     def _load_tag_names(self) -> None:
         """Preload the tag names (e.g. based on regexes) into self.tag_names."""
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def _tags_as_str(self) -> str:
         """Pretty-printed version of self.tag_names for user display."""
+
+    @abstractmethod
+    def _filter_predicate(self, medium: MediumDocument) -> bool:
+        """Returns true iff this rule part applies to that medium document."""
 
     def _ensure_tag_names_loaded(self) -> None:
         if self.tag_names is not None:
@@ -70,7 +76,7 @@ class HasAnyTags(RulePart):
         if not medium:
             return False
 
-        return len(self.tag_names & medium.tag_names.searchable) > 0
+        return self._filter_predicate(medium)
 
     def get_medium_ids(
         self, filtering_medium_ids: Optional[List[int]] = None
@@ -86,13 +92,20 @@ class HasAnyTags(RulePart):
                 m for m in all_media if m.medium_id in filtering_medium_ids
             ]
 
-        all_media = [
-            m
-            for m in all_media
-            if len(self.tag_names & m.tag_names.searchable) > 0
-        ]
+        all_media = [m for m in all_media if self._filter_predicate(m)]
 
         return [m.medium_id for m in all_media]
+
+
+class HasAnyTags(TagsRulePart):
+    """Base class for rule parts that check some tags are present or not."""
+
+    def _filter_predicate(self, medium: MediumDocument) -> bool:
+        # self.tag_names is Optional during initialization, but always
+        # non-optional after that. This type hint helps mypy.
+        valid_tag_names: Any = self.tag_names
+
+        return len(valid_tag_names & medium.tag_names.searchable) > 0
 
 
 class HasAnyTagsLike(HasAnyTags, IffAndThen):

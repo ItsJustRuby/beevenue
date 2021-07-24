@@ -93,10 +93,12 @@ def no_such_tag(current_name: str) -> Notification:
     )
 
 
-def tag_batch_added(added_count: int) -> Notification:
+def tag_batch_added(is_absent: bool, added_count: int) -> Notification:
     tag_string = "tag"
     if added_count > 1:
         tag_string = "tags"
+    if is_absent:
+        tag_string = f"absent {tag_string}"
 
     return _make_notification(
         _NotificationLevel.INFO,

@@ -7,7 +7,7 @@ from beevenue.flask import request
 
 from . import tags
 from ..types import MediumDocument
-from ..models import MediaTags, Medium, Tag
+from ..models import MediaTags, Medium, Tag, MediumTagAbsence
 from ..signals import medium_updated
 from .detail import MediumDetail
 from .media import similar_media
@@ -87,10 +87,34 @@ def _ensure(
         session.commit()
 
 
-def update_tags(medium: Medium, new_tags: List[str]) -> bool:
-    if new_tags is None:
-        return False
+def _ensure_absent(medium: Medium, new_absent_tag_ids: Set[int]) -> None:
+    session = g.db
 
+    absent_tags_to_delete = (
+        session.query(MediumTagAbsence)
+        .filter(MediumTagAbsence.medium_id == medium.id)
+        .all()
+    )
+
+    for tag in absent_tags_to_delete:
+        session.delete(tag)
+    if absent_tags_to_delete:
+        session.commit()
+
+    values = []
+    for tag_id in new_absent_tag_ids:
+        absence = MediumTagAbsence()
+        absence.medium_id = medium.id
+        absence.tag_id = tag_id
+        values.append(absence)
+
+    for absence in values:
+        session.add(absence)
+    if values:
+        session.commit()
+
+
+def update_tags(medium: Medium, new_tags: Set[str]) -> bool:
     validated_tags = tags.validate(new_tags)
 
     unknown_tag_names, existing_tag_ids = _distinguish(validated_tags)
@@ -101,15 +125,66 @@ def update_tags(medium: Medium, new_tags: List[str]) -> bool:
     return True
 
 
+def update_absent_tags(medium: Medium, new_absent_tags: Set[str]) -> bool:
+    validated_absent_tags = tags.validate(new_absent_tags)
+    _, existing_tag_ids = _distinguish(validated_absent_tags)
+
+    _ensure_absent(medium, existing_tag_ids)
+    return True
+
+
+def _reject_direct_overlap(
+    new_tags: Set[str], new_absent_tags: Set[str]
+) -> bool:
+    # A medium can't have the same (non-implied) tag both present and absent.
+    # If we receive such a request, we just don't apply that change.
+    return bool(new_tags & new_absent_tags)
+
+
+def _reject_implication_overlap(
+    medium: Medium, new_absent_tags: Set[str]
+) -> bool:
+    # Figure out if we want to mark a tag as both absent and implied. Reject.
+    spindex_medium = g.spindex.get_medium(medium.id)
+
+    if new_absent_tags & spindex_medium.tag_names.searchable:
+        return True
+
+    return False
+
+
+def _update_tags_and_absents(
+    medium: Medium, new_tags: Set[str], new_absent_tags: Set[str]
+) -> None:
+    new_tag_set = set(new_tags)
+    new_absent_tag_set = set(new_absent_tags)
+
+    if _reject_direct_overlap(new_tag_set, new_absent_tag_set):
+        return
+
+    update_tags(medium, new_tag_set)
+    medium_updated.send(medium.id)
+
+    if _reject_implication_overlap(medium, new_absent_tag_set):
+        return
+
+    update_absent_tags(medium, new_absent_tag_set)
+
+
 def update_medium(
-    medium_id: int, new_rating: str, new_tags: List[str]
+    medium_id: int,
+    new_rating: str,
+    new_tags: List[str],
+    new_absent_tags: List[str],
 ) -> Optional[MediumDetail]:
+
     maybe_medium = Medium.query.get(medium_id)
     if not maybe_medium:
         return None
 
     update_rating(maybe_medium, new_rating)
-    update_tags(maybe_medium, new_tags)
+    _update_tags_and_absents(maybe_medium, set(new_tags), set(new_absent_tags))
+
     medium_updated.send(maybe_medium.id)
 
     result: MediumDocument = g.spindex.get_medium(  # type: ignore

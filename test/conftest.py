@@ -1,11 +1,10 @@
+# Ignore warning that SQLite + DECIMAL sucks.
 import json
 import os
 import re
 import shutil
 import sqlite3
 import tempfile
-
-# Ignore warning that SQLite + DECIMAL sucks.
 import warnings
 
 import pytest

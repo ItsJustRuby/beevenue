@@ -32,8 +32,9 @@ def create_spindexed_medium(
 
     searchable_tag_names = innate_tag_names | extra_searchable_tags
 
+    absent_tag_names = {t.tag for t in medium.absent_tags}
     return SpindexedMedium.create(
-        medium, innate_tag_names, searchable_tag_names
+        medium, innate_tag_names, searchable_tag_names, absent_tag_names
     )
 
 

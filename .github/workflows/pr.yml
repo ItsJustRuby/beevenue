@@ -21,14 +21,8 @@ jobs:
         run: black .
       - name: Run mypy
         run: mypy .
-      - name: Forcefully downgrade isort to fix pylint
-        run: pip install -I isort==4.3.21
       - name: Run pylint
         run: pylint beevenue
-      - name: Install newest isort
-        run: pip uninstall -y isort && pip install -I -U isort
-      - name: Run isort
-        run: isort **/*.py
       - name: Create PR (if necessary)
         id: cpr
         uses: peter-evans/create-pull-request@v3

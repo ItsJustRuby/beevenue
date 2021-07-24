@@ -10,7 +10,7 @@ from .common import (
 )
 from .iff import All, Iff
 from .rule import Rule
-from .then import Fail, Then
+from .then import Fail, Then, HasAllTagsAbsentOrPresent
 from . import types
 
 
@@ -36,6 +36,8 @@ def _decode_iff(obj: types.RuleJson) -> Iff:
 def _decode_then(obj: types.RuleJson) -> Then:
     if obj["type"] == "fail":
         return Fail()
+    if obj["type"] == "hasAllAbsentOrPresent":
+        return HasAllTagsAbsentOrPresent(*obj["data"])
     return _decode_common(obj)
 
 
@@ -63,7 +65,9 @@ def decode_rules_list(json_list: List[types.TopLevelRuleJson]) -> List[Rule]:
 class RulePartEncoder(json.JSONEncoder):
     """JSON Encoder for `RulePart`."""
 
-    def default(self, o: RulePart) -> types.RuleJson:
+    def default(  # pylint: disable=too-many-return-statements
+        self, o: RulePart
+    ) -> types.RuleJson:
         if isinstance(o, All):
             all_json: types.AllJson = {"type": "all"}
             return all_json
@@ -80,6 +84,12 @@ class RulePartEncoder(json.JSONEncoder):
 
             any_rating_json: types.HasAnyRatingJson = {"type": "hasRating"}
             return any_rating_json
+        if isinstance(o, HasAllTagsAbsentOrPresent):
+            json_obj: types.HasAllTagsAbsentOrPresentJson = {
+                "type": "hasAllAbsentOrPresent",
+                "data": list(o.tag_names),
+            }
+            return json_obj
         if isinstance(o, HasAnyTagsIn):
             has_any_tags_in_json: types.HasAnyTagsInJson = {
                 "type": "hasAnyTagsIn",

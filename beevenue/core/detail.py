@@ -22,5 +22,6 @@ class MediumDetail(  # pylint: disable=too-many-instance-attributes
         self.rating = medium.rating
         self.tiny_thumbnail = medium.tiny_thumbnail
         self.tag_names = medium.tag_names
+        self.absent_tag_names = medium.absent_tag_names
 
         self.similar = similar

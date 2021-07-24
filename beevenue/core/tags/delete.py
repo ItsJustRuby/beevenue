@@ -14,7 +14,11 @@ def delete_orphans() -> None:
     )
 
     def is_deletable(tag: Tag) -> bool:
-        return len(tag.implying_this) == 0 and len(tag.aliases) == 0
+        return (
+            len(tag.implying_this) == 0
+            and len(tag.aliases) == 0
+            and len(tag.absent_in_media) == 0
+        )
 
     tags_to_delete = [t for t in tags_to_delete if is_deletable(t)]
 

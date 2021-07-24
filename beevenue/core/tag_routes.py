@@ -74,15 +74,20 @@ def get_tags_stats():  # type: ignore
 @permissions.is_owner
 @add_tags_batch_schema
 def add_tags_batch():  # type: ignore
+
     added_count = new.add_batch(
+        request.json["isAbsent"],
         request.json["tags"],
         request.json["mediumIds"],
     )
 
     if added_count is None:
-        return notifications.simple_warning("No tags added")
+        return notifications.simple_warning("No changes applied")
 
-    return notifications.tag_batch_added(added_count), 200
+    return (
+        notifications.tag_batch_added(request.json["isAbsent"], added_count),
+        200,
+    )
 
 
 @bp.route("/tags/similarity")

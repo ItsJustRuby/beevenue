@@ -13,6 +13,9 @@ from .types import MediumDocument
 class _MediumDocumentSchema(Schema):
     medium_id = fields.Int(data_key="id")
     tags = fields.Method("extract_innate_tags")
+    absent_tag_names = fields.Method(
+        "extract_absent_tags", data_key="absentTags"
+    )
     aspect_ratio = fields.String(data_key="aspectRatio")
     medium_hash = fields.String(data_key="hash")
     rating = fields.String()
@@ -22,6 +25,9 @@ class _MediumDocumentSchema(Schema):
         return [  # pylint: disable=unnecessary-comprehension
             t for t in obj.tag_names.innate
         ]
+
+    def extract_absent_tags(self, obj: MediumDocument) -> List[str]:
+        return list(obj.absent_tag_names)
 
 
 class _MediumDocumentDetailSchema(_MediumDocumentSchema):

@@ -34,6 +34,7 @@ update_tag_schema = requires_json_body(_UpdateTagSchema())
 
 
 class _AddTagsBatchSchema(Schema):
+    isAbsent = fields.Bool(required=True)
     tags = fields.List(fields.String, required=True)
     mediumIds = fields.List(fields.Int, required=True)
 
