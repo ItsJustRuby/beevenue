@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload, load_only
 from beevenue import paths
 from beevenue.flask import BeevenueContext, EXTENSIONS
 
-from ..models import Medium
+from ..models import Medium, MediaTags, MediumTagAbsence
 from ..signals import medium_deleted
 from .detail import MediumDetail
 from .similar import similar_media
@@ -63,8 +63,6 @@ def delete(medium_id: int) -> bool:
     if not maybe_medium:
         return False
 
-    # Delete "Medium" DB row. Note: SQLAlchemy
-    # automatically removes MediaTags rows!
     _delete(maybe_medium)
 
     return True
@@ -75,6 +73,12 @@ def _delete(medium: Medium) -> None:
     extension = EXTENSIONS[medium.mime_type]
 
     medium_id = medium.id
+    g.db.query(MediaTags).filter(MediaTags.c.medium_id == medium_id).delete(
+        synchronize_session=False
+    )
+    g.db.query(MediumTagAbsence).filter(
+        MediumTagAbsence.medium_id == medium_id
+    ).delete(synchronize_session=False)
     g.db.query(Medium).filter(Medium.id == medium_id).delete(
         synchronize_session=False
     )

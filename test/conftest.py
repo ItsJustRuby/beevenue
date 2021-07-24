@@ -107,6 +107,15 @@ def _client():
     c = app.test_client()
     c.app_under_test = app
 
+    def sql_debug(raw_query_text):
+        escaped_temp_path = temp_path.replace("\\", "\\\\")
+        conn = sqlite3.connect(escaped_temp_path)
+        for row in conn.execute(raw_query_text):
+            print(row)
+        conn.close()
+
+    c.sql_debug = sql_debug
+
     # Example code to run some arbitrary SQL query - e.g. to set
     # currently hardcoded constants like "what's the Id of the video medium"
     # dynamically:

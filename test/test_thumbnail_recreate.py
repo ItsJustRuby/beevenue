@@ -1,5 +1,5 @@
 def test_thumbnail_recreate_succeeds(client, asAdmin):
-    res = client.patch("/thumbnail/4")
+    res = client.patch("/thumbnail/5")
     assert res.status_code == 200
 
 
