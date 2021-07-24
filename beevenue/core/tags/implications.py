@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 from flask import g
 from sqlalchemy import and_
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.query import Query
 
 from ...models import Tag, TagImplication
@@ -14,8 +15,18 @@ def _identify_implication_tags(
     implying: str, implied: str
 ) -> Optional[Tuple[Tag, Tag]]:
     session = g.db
-    implying_tags = session.query(Tag).filter(Tag.tag == implying).all()
-    implied_tags = session.query(Tag).filter(Tag.tag == implied).all()
+    implying_tags = (
+        session.query(Tag)
+        .options(joinedload(Tag.implied_by_this), joinedload(Tag.implying_this))
+        .filter(Tag.tag == implying)
+        .all()
+    )
+    implied_tags = (
+        session.query(Tag)
+        .options(joinedload(Tag.implied_by_this), joinedload(Tag.implying_this))
+        .filter(Tag.tag == implied)
+        .all()
+    )
     if len(implying_tags) != 1 or len(implied_tags) != 1:
         return None
 
@@ -140,6 +151,7 @@ def get_all() -> Dict[str, List[str]]:
         .filter(
             Tag.implied_by_this != None  # pylint: disable=singleton-comparison
         )
+        .options(joinedload(Tag.implied_by_this))
         .all()
     )
     return {row.tag: [t.tag for t in row.implied_by_this] for row in rows}

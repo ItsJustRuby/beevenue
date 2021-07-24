@@ -30,7 +30,8 @@ bad-continuation,
 missing-module-docstring,
 missing-function-docstring,
 broad-except,
-wrong-import-order
+wrong-import-order,
+duplicate-code
 """
 # enable = """,
 # missing-class-docstring,

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Dict, Iterable, Set, Tuple
 
+from sqlalchemy.orm import joinedload
 from flask import g
 
 from . import AbstractDataSource, create_spindexed_medium
@@ -36,7 +37,9 @@ class _FullLoadDataSource(AbstractDataSource):
 
 def full_load() -> None:
     session = g.db
-    all_media = Medium.query.all()
+    all_media = Medium.query.options(
+        joinedload(Medium.tags), joinedload(Medium.absent_tags)
+    ).all()
 
     all_implications = session.query(TagImplication).all()
 

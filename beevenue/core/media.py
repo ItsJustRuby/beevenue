@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import zipfile
 
 from flask import current_app, g
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import joinedload, load_only
 
 from beevenue import paths
 from beevenue.flask import BeevenueContext, EXTENSIONS
@@ -73,10 +73,14 @@ def delete(medium_id: int) -> bool:
 def _delete(medium: Medium) -> None:
     current_hash = medium.hash
     extension = EXTENSIONS[medium.mime_type]
-    g.db.delete(medium)
+
+    medium_id = medium.id
+    g.db.query(Medium).filter(Medium.id == medium_id).delete(
+        synchronize_session=False
+    )
     g.db.commit()
 
-    medium_deleted.send(medium.id)
+    medium_deleted.send(medium_id)
     delete_medium_files(current_hash, extension)
 
 
@@ -93,7 +97,11 @@ def delete_medium_files(medium_hash: str, extension: str) -> None:
 def get_zip(medium_id: int) -> Tuple[int, Optional[BytesIO]]:
     """Get zip file containing file and metadata for specific medium."""
 
-    medium = Medium.query.filter_by(id=medium_id).first()
+    medium = (
+        Medium.query.filter_by(id=medium_id)
+        .options(joinedload(Medium.tags))
+        .first()
+    )
 
     if not medium:
         return 404, None

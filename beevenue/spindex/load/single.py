@@ -1,6 +1,7 @@
 from typing import Iterable, Optional, Set, Tuple
 
 from flask import g
+from sqlalchemy.orm import joinedload
 
 from . import AbstractDataSource, create_spindexed_medium
 from ...models import Medium, Tag, TagAlias, TagImplication
@@ -42,5 +43,10 @@ class _SingleLoadDataSource(AbstractDataSource):
 
 
 def single_load(medium_id: int) -> Optional[MediumDocument]:
-    matching_medium = g.db.query(Medium).filter_by(id=medium_id).first()
+    matching_medium = (
+        g.db.query(Medium)
+        .filter_by(id=medium_id)
+        .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
+        .first()
+    )
     return create_spindexed_medium(_SingleLoadDataSource(), matching_medium)

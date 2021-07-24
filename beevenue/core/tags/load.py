@@ -1,5 +1,6 @@
 from typing import List, Optional, Set, Tuple
 
+from sqlalchemy.orm import joinedload
 from flask import g
 
 from ...models import Medium, Tag
@@ -8,7 +9,18 @@ from . import ValidTagName
 
 def get(name: str) -> Optional[Tag]:
     session = g.db
-    all_tags: List[Tag] = session.query(Tag).filter_by(tag=name).all()
+    all_tags: List[Tag] = (
+        session.query(Tag)
+        .filter_by(tag=name)
+        .options(
+            joinedload(Tag.media),
+            joinedload(Tag.aliases),
+            joinedload(Tag.implied_by_this),
+            joinedload(Tag.implying_this),
+        )
+        .all()
+    )
+
     if len(all_tags) != 1:
         return None
 
@@ -32,7 +44,11 @@ def load(
     if not all_tags:
         return None
 
-    all_media = Medium.query.filter(Medium.id.in_(medium_ids)).all()
+    all_media = (
+        Medium.query.filter(Medium.id.in_(medium_ids))
+        .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
+        .all()
+    )
 
     # User submitted only ids for nonexistant media
     if not all_media:

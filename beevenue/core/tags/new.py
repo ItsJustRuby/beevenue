@@ -1,5 +1,6 @@
 from typing import Iterable, Optional, Set, Tuple
 
+from sqlalchemy.orm import joinedload
 from flask import g
 
 from ...models import Tag, Medium, TagAlias
@@ -61,7 +62,12 @@ def create(name: ValidTagName) -> Tuple[bool, Tag]:
     """Return tuple of (needs_to_be_inserted, matching_tag)."""
 
     # Don't create tag if there is another tag that has 'name' as an alias
-    maybe_conflict = g.db.query(TagAlias).filter_by(alias=name).first()
+    maybe_conflict = (
+        g.db.query(TagAlias)
+        .options(joinedload(TagAlias.tag))
+        .filter_by(alias=name)
+        .first()
+    )
     if maybe_conflict:
         return False, maybe_conflict.tag
 

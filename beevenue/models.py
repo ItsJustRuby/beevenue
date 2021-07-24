@@ -31,14 +31,14 @@ class Tag(db.Model):
         db.Enum("e", "s", "q", "u", name="Rating"), nullable=False
     )
 
-    aliases = db.relationship("TagAlias", lazy="joined")
+    aliases = db.relationship("TagAlias", lazy="raise")
 
     implying_this = db.relationship(
         "Tag",
         secondary=TagImplication,
         primaryjoin=id == TagImplication.c.implied_tag_id,
         secondaryjoin=id == TagImplication.c.implying_tag_id,
-        lazy="joined",
+        lazy="raise",
     )
 
     implied_by_this = db.relationship(
@@ -46,7 +46,7 @@ class Tag(db.Model):
         secondary=TagImplication,
         primaryjoin=id == TagImplication.c.implying_tag_id,
         secondaryjoin=id == TagImplication.c.implied_tag_id,
-        lazy="joined",
+        lazy="raise",
     )
 
     def __init__(self, tag: str):
@@ -69,7 +69,7 @@ class TagAlias(db.Model):
     )
     alias = db.Column(db.String(length=256), unique=True, nullable=False)
 
-    tag = db.relationship(Tag, lazy="joined")
+    tag = db.relationship(Tag, lazy="raise")
 
     def __init__(self, tag_id: int, alias: str):
         self.tag_id = tag_id
@@ -108,8 +108,8 @@ class MediumTagAbsence(db.Model):
 
     __table_args__ = (db.UniqueConstraint("medium_id", "tag_id"),)
 
-    tag = db.relationship(Tag, lazy="joined")
-    medium = db.relationship("Medium", lazy="joined")
+    tag = db.relationship(Tag, lazy="raise")
+    medium = db.relationship("Medium", lazy="raise")
 
 
 class Medium(db.Model):
@@ -127,15 +127,14 @@ class Medium(db.Model):
     tags = db.relationship(
         "Tag",
         secondary=MediaTags,
-        lazy="joined",
-        backref=db.backref("media", lazy="joined"),
+        lazy="raise",
+        backref=db.backref("media", lazy="raise"),
     )
 
     absent_tags = db.relationship(
         "Tag",
         secondary="mediumTagAbsence",
-        lazy="joined",
-        backref=db.backref("absent_in_media", lazy="joined"),
+        lazy="raise",
     )
 
     def __init__(
