@@ -2,6 +2,8 @@ from typing import Tuple
 
 from flask import g
 
+from ..core.tags.delete import delete_orphans
+
 from ..signals import (
     alias_added,
     alias_removed,
@@ -23,7 +25,8 @@ def _rename_tag(names: Tuple[str, str]) -> None:
     g.spindex.rename_tag(old_name, new_name)
 
 
-def _unindex_medium(medium_id: int) -> None:
+def _cleanup_medium(medium_id: int) -> None:
+    delete_orphans()
     g.spindex.remove_medium(medium_id)
 
 
@@ -52,7 +55,7 @@ def setup_signals() -> None:
 
     medium_updated.connect(_reindex_medium)
     medium_added.connect(_reindex_medium)
-    medium_deleted.connect(_unindex_medium)
+    medium_deleted.connect(_cleanup_medium)
 
     tag_renamed.connect(_rename_tag)
 
