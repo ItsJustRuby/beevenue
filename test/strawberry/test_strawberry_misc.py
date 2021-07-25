@@ -26,3 +26,10 @@ def test_trivial_rules_return_zero_violations(
     r = client.get("/tags/missing/any")
     assert r.status_code == 200
     assert r.get_json() == {}
+
+
+def test_high_rating_rules_return_non_safe_violations(
+    client, asAdmin, withSimpleRules
+):
+    r = client.get("/tags/missing/any")
+    assert r.status_code == 200

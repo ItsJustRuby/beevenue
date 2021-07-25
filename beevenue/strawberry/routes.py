@@ -1,3 +1,5 @@
+from collections import defaultdict
+import random
 from typing import Dict, Generator, List, Set, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
@@ -109,23 +111,27 @@ def get_missing_tags_for_post(medium_id: int):  # type: ignore
 @permissions.is_owner
 def get_missing_tags_any():  # type: ignore
     violations = list(_get_rule_violations())
+    if not violations:
+        return _pretty_print({})
 
     all_media = g.spindex.all()
 
     violation_medium_ids = frozenset(v[0] for v in violations)
     media = [m for m in all_media if m.medium_id in violation_medium_ids]
-
     rating_by_id = {m.medium_id: m.rating for m in media}
 
-    def sorter(violation: Tuple[int, Rule]) -> int:
-        if rating_by_id[violation[0]] == "s":
-            return 1
-        return 2
+    violations_by_rating = defaultdict(list)
+    for violation in violations:
+        medium_id, rule = violation
+        violations_by_rating[rating_by_id[medium_id]].append(violation)
 
-    first_violation = min(violations, key=sorter, default=None)
+    current_rating_violations = None
 
-    if not first_violation:
-        return _pretty_print({})
+    for rating in ["s", "q", "e", "u"]:  # pragma: no cover
+        current_violations = violations_by_rating[rating]
+        if current_violations:
+            current_rating_violations = current_violations
+            break
 
-    (medium_id, rule) = first_violation
+    (medium_id, rule) = random.choice(current_rating_violations)
     return _pretty_print({medium_id: [rule]})

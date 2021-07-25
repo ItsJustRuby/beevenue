@@ -191,7 +191,18 @@ def asUser(client):
 @pytest.fixture
 def withTrivialRules(client):
     """Ensure that the 'trivial' ruleset is active."""
-    with open("test/resources/testing_rules_trivial.json", "r") as f:
+    withRules(client, "test/resources/testing_rules_trivial.json")
+
+
+@pytest.fixture
+def withSimpleRules(client):
+    """Ensure that the 'rating' ruleset is active."""
+    withRules(client, "test/resources/testing_rules_simple.json")
+
+
+def withRules(client, path):
+    """Ensure that a specific ruleset is active."""
+    with open(path, "r") as f:
         contents = f.read()
 
     res = client.post("/rules", json=json.loads(contents))
