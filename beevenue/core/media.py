@@ -25,7 +25,11 @@ def _try_and_remove(file: str) -> None:
 
 
 def _get_metadata_bytes(medium: Medium) -> bytes:
-    metadata = {"rating": medium.rating, "tags:": [t.tag for t in medium.tags]}
+    metadata = {
+        "rating": medium.rating,
+        "tags": [t.tag for t in medium.tags],
+        "absent_tags": [t.tag for t in medium.absent_tags],
+    }
     metadata_text = json.dumps(metadata)
     return metadata_text.encode("utf-8")
 
@@ -110,7 +114,7 @@ def get_zip(medium_id: int) -> Tuple[int, Optional[BytesIO]]:
 
     medium = (
         Medium.query.filter_by(id=medium_id)
-        .options(joinedload(Medium.tags))
+        .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
         .first()
     )
 
