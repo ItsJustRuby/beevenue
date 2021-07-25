@@ -41,7 +41,8 @@ def _login_required_by_default() -> Optional[Any]:
         return None
 
     if not current_user.is_authenticated:
-        return current_app.login_manager.unauthorized()
+        any_current_app: Any = current_app
+        return any_current_app.login_manager.unauthorized()
     return None
 
 

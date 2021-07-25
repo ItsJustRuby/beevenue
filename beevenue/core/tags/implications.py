@@ -2,7 +2,7 @@ from collections import deque
 from typing import Dict, List, Optional, Tuple
 
 from flask import g
-from sqlalchemy import and_
+from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.query import Query
 
@@ -53,13 +53,15 @@ def _would_create_implication_cycle(
     while queue:
         current = queue.pop()
 
-        neighbors = (
-            session.query(TagImplication)
-            .filter(TagImplication.c.implying_tag_id == current)
+        neighbor_ids = (
+            session.execute(
+                select(TagImplication.implied_tag_id).filter(
+                    TagImplication.implying_tag_id == current
+                )
+            )
+            .scalars()
             .all()
         )
-
-        neighbor_ids = [n.implied_tag_id for n in neighbors]
 
         for neighbor_id in neighbor_ids:
             if neighbor_id in visited:
@@ -72,8 +74,8 @@ def _would_create_implication_cycle(
 def _tag_implication_query(implying_tag: Tag, implied_tag: Tag) -> Query:
     return g.db.query(TagImplication).filter(
         and_(
-            TagImplication.c.implying_tag_id == implying_tag.id,
-            TagImplication.c.implied_tag_id == implied_tag.id,
+            TagImplication.implying_tag_id == implying_tag.id,
+            TagImplication.implied_tag_id == implied_tag.id,
         )
     )
 

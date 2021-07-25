@@ -10,13 +10,12 @@ line-length = 80
 [tool.pylint.master]
 load-plugins = [
 "pylint_flask",
-"pylint_flask_sqlalchemy"
 ]
 max-line-length = 80
 
 [tool.pylint.typecheck]
-# old-style SQLAlchemy tables are broken without this
-ignored-classes = [ "Table", "Column" ]
+# pylint-flask-sqlalchemy is broken, but this manually fixes most errors.
+ignored-classes = [ "SQLAlchemy" ]
 
 [tool.pylint.all]
 # black and pylint don't agree on continuations. black is less wrong though.

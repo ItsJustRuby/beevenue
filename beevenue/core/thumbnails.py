@@ -20,7 +20,7 @@ def _thumbnailable_video(
     medium_id: int,
 ) -> Tuple[int, Optional[Tuple[str, Medium]]]:
     session = g.db
-    medium = session.query(Medium).filter_by(id=medium_id).first()
+    medium = session.get(Medium, medium_id)
 
     if not medium:
         return 404, None
@@ -59,7 +59,7 @@ def pick(medium_id: int, thumb_index: int, thumbnail_count: int) -> int:
 
 def create(medium_id: int) -> Tuple[int, str]:
     session = g.db
-    maybe_medium = session.query(Medium).filter_by(id=medium_id).first()
+    maybe_medium = session.get(Medium, medium_id)
 
     if not maybe_medium:
         return 404, ""
@@ -90,7 +90,7 @@ def _generate_tiny(medium_id: int) -> None:
     size, _ = list(current_app.config["BEEVENUE_THUMBNAIL_SIZES"].items())[0]
     tiny_thumb_res = current_app.config["BEEVENUE_TINY_THUMBNAIL_SIZE"]
 
-    medium = Medium.query.get(medium_id)
+    medium = g.db.get(Medium, medium_id)
     out_path = paths.thumbnail_path(medium_hash=medium.hash, size=size)
 
     with Image.open(out_path, "r") as img:

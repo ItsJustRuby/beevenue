@@ -5,6 +5,7 @@ import re
 from typing import Literal, Optional, Tuple, TypedDict, Union, Any
 
 from flask import g
+from sqlalchemy import select
 import magic
 
 from beevenue import paths
@@ -102,13 +103,17 @@ def upload_precheck(
 ) -> Tuple[Optional[UploadDetails], Optional[UploadFailure]]:
     basename = _md5sum(file)
 
-    conflicting_medium = Medium.query.filter(Medium.hash == basename).first()
-    if conflicting_medium:
+    conflicting_medium_id = (
+        g.db.execute(select(Medium.id).filter(Medium.hash == basename))
+        .scalars()
+        .first()
+    )
+    if conflicting_medium_id:
         return (
             None,
             {
                 "type": UploadFailureType.CONFLICTING_MEDIUM,
-                "medium_id": conflicting_medium.id,
+                "medium_id": conflicting_medium_id,
             },
         )
 

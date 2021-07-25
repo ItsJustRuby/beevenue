@@ -1,8 +1,9 @@
 from typing import Optional
 
+from flask import session
+
 from ..login_manager import login_manager
 from .logged_in_user import LoggedInUser
-from .models import User
 
 
 def init() -> None:
@@ -12,9 +13,9 @@ def init() -> None:
         username: str,
     ) -> Optional[LoggedInUser]:
         """Try to load user with specified username."""
+        if "role" not in session:
+            return None
 
-        user_entity = User.query.filter(User.username == username).first()
-        user = LoggedInUser(username, user_entity.role)
-        return user
+        return LoggedInUser(username, session["role"])
 
     login_manager.user_loader(user_loader)

@@ -1,4 +1,3 @@
-import random
 from typing import Dict, Generator, List, Set, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
@@ -111,10 +110,6 @@ def get_missing_tags_for_post(medium_id: int):  # type: ignore
 def get_missing_tags_any():  # type: ignore
     violations = list(_get_rule_violations())
 
-    # Ensure that tag violations are ordered somewhat randomly,
-    # but also that all SFW media get reviewed before all others.
-    random.shuffle(violations)
-
     all_media = g.spindex.all()
 
     violation_medium_ids = frozenset(v[0] for v in violations)
@@ -127,9 +122,10 @@ def get_missing_tags_any():  # type: ignore
             return 1
         return 2
 
-    violations.sort(key=sorter)
+    first_violation = min(violations, key=sorter, default=None)
 
-    for medium_id, rule in violations:
-        return _pretty_print({medium_id: [rule]})
+    if not first_violation:
+        return _pretty_print({})
 
-    return _pretty_print({})
+    (medium_id, rule) = first_violation
+    return _pretty_print({medium_id: [rule]})

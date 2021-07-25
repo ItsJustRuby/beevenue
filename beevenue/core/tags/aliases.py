@@ -1,6 +1,8 @@
 from typing import Optional
 
 from flask import g
+from sqlalchemy import select
+from sqlalchemy.sql.expression import func
 
 from .delete import delete_orphans
 from ...models import Tag, TagAlias
@@ -14,22 +16,30 @@ def add_alias(current_name: str, new_alias: str) -> Optional[str]:
 
     session = g.db
 
-    old_tags = session.query(Tag).filter(Tag.tag == current_name).all()
+    old_tags = (
+        session.execute(select(Tag).filter(Tag.tag == current_name))
+        .scalars()
+        .all()
+    )
+
     if len(old_tags) != 1:
         return "Could not find tag with that name"
 
     new_alias = new_alias.strip()
 
-    conflicting_aliases = (
-        session.query(TagAlias).filter(TagAlias.alias == new_alias).all()
-    )
-    if len(conflicting_aliases) > 0:
+    conflicting_aliases_count = (
+        session.execute(
+            select(func.count(TagAlias.id)).filter(TagAlias.alias == new_alias)
+        )
+    ).scalar()
+    if conflicting_aliases_count > 0:
         return "This alias is already taken"
 
     # Ensure that there is no tag with the new_alias as actual name
     conflicting_tags_count = (
-        session.query(Tag).filter(Tag.tag == new_alias).count()
-    )
+        session.execute(select(func.count(Tag.id)).filter(Tag.tag == new_alias))
+    ).scalar()
+
     if conflicting_tags_count > 0:
         return "This alias is already taken"
 
@@ -52,13 +62,18 @@ def remove_alias(name: str, alias: str) -> None:
     Always succeeds, even if tag or alias do not exist."""
     session = g.db
 
-    old_tags = session.query(Tag).filter(Tag.tag == name).all()
-    if len(old_tags) != 1:
+    old_tag_count = session.execute(
+        select(func.count(Tag.id)).filter(Tag.tag == name)
+    ).scalar()
+    if old_tag_count != 1:
         return None
 
     current_aliases = (
-        session.query(TagAlias).filter(TagAlias.alias == alias).all()
+        (session.execute(select(TagAlias).filter(TagAlias.alias == alias)))
+        .scalars()
+        .all()
     )
+
     if len(current_aliases) == 0:
         return None
 

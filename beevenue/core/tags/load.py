@@ -1,5 +1,6 @@
 from typing import List, Optional, Set, Tuple
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from flask import g
 
@@ -37,7 +38,11 @@ def load(
     if not medium_ids:
         return None
 
-    all_tags = Tag.query.filter(Tag.tag.in_(trimmed_tag_names)).all()
+    all_tags = (
+        g.db.execute(select(Tag).filter(Tag.tag.in_(trimmed_tag_names)))
+        .scalars()
+        .all()
+    )
 
     # User submitted only tags that don't exist yet.
     # Note: add_batch does not autocreate tags.

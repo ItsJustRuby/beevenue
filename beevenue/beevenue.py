@@ -54,6 +54,7 @@ def get_application(
     sentry_sdk.init(  # pylint: disable=abstract-class-instantiated
         dsn=application.config["SENTRY_DSN"],
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
+        environment=application.config.get("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=0.005,
     )
 

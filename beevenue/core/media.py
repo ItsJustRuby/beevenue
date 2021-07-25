@@ -5,12 +5,13 @@ from typing import List, Optional, Tuple
 import zipfile
 
 from flask import current_app, g
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy import select, delete as sql_delete
+from sqlalchemy.orm import joinedload
 
 from beevenue import paths
 from beevenue.flask import BeevenueContext, EXTENSIONS
 
-from ..models import Medium, MediaTags, MediumTagAbsence
+from ..models import Medium, MediumTag, MediumTagAbsence
 from ..signals import medium_deleted
 from .detail import MediumDetail
 from .similar import similar_media
@@ -47,18 +48,16 @@ def get(
 def get_all_ids() -> List[int]:
     """Get ids of *all* media."""
 
-    return [
-        m.id
-        for m in Medium.query.options(load_only(Medium.id))
-        .order_by(Medium.id)
-        .all()
-    ]
+    ids: List[int] = (
+        g.db.execute(select(Medium.id).order_by(Medium.id)).scalars().all()
+    )
+    return ids
 
 
 def delete(medium_id: int) -> bool:
     """Delete medium. Return True on success, False otherwise."""
 
-    maybe_medium = Medium.query.filter_by(id=medium_id).first()
+    maybe_medium = g.db.get(Medium, medium_id)
 
     if not maybe_medium:
         return False
@@ -72,17 +71,25 @@ def _delete(medium: Medium) -> None:
     current_hash = medium.hash
     extension = EXTENSIONS[medium.mime_type]
 
+    session = g.db
     medium_id = medium.id
-    g.db.query(MediaTags).filter(MediaTags.c.medium_id == medium_id).delete(
-        synchronize_session=False
+
+    session.execute(
+        sql_delete(MediumTag)
+        .filter(MediumTag.medium_id == medium_id)
+        .execution_options(synchronize_session=False)
     )
-    g.db.query(MediumTagAbsence).filter(
-        MediumTagAbsence.medium_id == medium_id
-    ).delete(synchronize_session=False)
-    g.db.query(Medium).filter(Medium.id == medium_id).delete(
-        synchronize_session=False
+    session.execute(
+        sql_delete(MediumTagAbsence)
+        .filter(MediumTagAbsence.medium_id == medium_id)
+        .execution_options(synchronize_session=False)
     )
-    g.db.commit()
+    session.execute(
+        sql_delete(Medium)
+        .filter(Medium.id == medium_id)
+        .execution_options(synchronize_session=False)
+    )
+    session.commit()
 
     medium_deleted.send(medium_id)
     delete_medium_files(current_hash, extension)

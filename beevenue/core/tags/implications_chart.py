@@ -2,6 +2,7 @@ from typing import Dict, List, TypedDict
 from itertools import groupby
 
 from flask import g
+from sqlalchemy import select
 
 from ...models import Tag, TagImplication
 from .censorship import Censorship
@@ -16,7 +17,7 @@ Implications = TypedDict(
 
 def get_all_implications() -> Implications:
     session = g.db
-    all_rows = session.query(TagImplication).all()
+    all_rows = session.execute(select(TagImplication)).scalars().all()
 
     if not all_rows:
         return {"nodes": {}, "links": {}}
@@ -26,8 +27,13 @@ def get_all_implications() -> Implications:
         all_tag_ids.add(row.implying_tag_id)
         all_tag_ids.add(row.implied_tag_id)
 
-    tag_names = session.query(Tag).filter(Tag.id.in_(all_tag_ids)).all()
-    tag_dict = {t.id: t for t in tag_names}
+    tags = (
+        session.execute(select(Tag).filter(Tag.id.in_(all_tag_ids)))
+        .scalars()
+        .all()
+    )
+
+    tag_dict = {t.id: t for t in tags}
 
     censoring = Censorship(tag_dict, tag_name_selector)
 

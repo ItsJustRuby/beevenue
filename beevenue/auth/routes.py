@@ -1,7 +1,8 @@
 import bcrypt
-from flask import Blueprint, current_app, jsonify, session
+from flask import Blueprint, current_app, g, jsonify, session
 from flask_login import current_user, login_user, logout_user
 from flask_principal import AnonymousIdentity, Identity, identity_changed
+from sqlalchemy import select
 
 from beevenue.flask import request
 
@@ -22,7 +23,7 @@ def get_login_state():  # type: ignore
 
     result = {
         "id": current_user.id,
-        "role": current_user.role,
+        "role": session["role"],
         "version": current_app.config["COMMIT_ID"],
         "sfwSession": session.get("sfwSession", True),
     }
@@ -51,7 +52,11 @@ def login():  # type: ignore
     username = request.json["username"]
     password = request.json["password"]
 
-    maybe_user = User.query.filter(User.username == username).first()
+    maybe_user = (
+        g.db.execute(select(User).filter(User.username == username))
+        .scalars()
+        .first()
+    )
     if not maybe_user:
         return "", 401
 
@@ -60,6 +65,8 @@ def login():  # type: ignore
     )
     if not is_authed:
         return "", 401
+
+    session["role"] = maybe_user.role
 
     if "sfwSession" not in session:
         session["sfwSession"] = True

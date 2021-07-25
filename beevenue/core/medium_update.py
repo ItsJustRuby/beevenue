@@ -1,13 +1,13 @@
 from typing import Iterable, List, Optional, Set, Tuple
 
 from flask import g
-from sqlalchemy.sql import column
+from sqlalchemy import select, delete
 
 from beevenue.flask import request
 
 from . import tags
 from ..types import MediumDocument
-from ..models import MediaTags, Medium, Tag, MediumTagAbsence
+from ..models import MediumTag, Medium, Tag, MediumTagAbsence
 from ..signals import medium_updated
 from .detail import MediumDetail
 from .media import similar_media
@@ -30,7 +30,11 @@ def _distinguish(
     if len(new_tags) == 0:
         existing_tags = []
     else:
-        existing_tags = Tag.query.filter(Tag.tag.in_(new_tags)).all()
+        existing_tags = (
+            g.db.execute(select(Tag).filter(Tag.tag.in_(new_tags)))
+            .scalars()
+            .all()
+        )
 
     existing_tag_id_by_name = {}
     for tag in existing_tags:
@@ -58,7 +62,7 @@ def _autocreate(unknown_tag_names: Set[ValidTagName]) -> List[Tag]:
             need_to_commit = True
         new_tags.append(matching_tag)
 
-    # We need this to get the ids to insert into MediaTags later!
+    # We need this to get the ids to insert into MediumTag later!
     if need_to_commit:
         session.commit()
 
@@ -73,45 +77,38 @@ def _ensure(
     target_tag_ids = existing_tag_ids | {t.id for t in new_tags}
 
     # ensure that medium_tags contains exactly that set
-    stmt = MediaTags.delete().where(column("medium_id") == medium.id)
-    session.execute(stmt)
-    session.commit()
+    session.execute(
+        delete(MediumTag)
+        .filter(MediumTag.medium_id == medium.id)
+        .execution_options(synchronize_session=False)
+    )
 
-    values = []
     for tag_id in target_tag_ids:
-        values.append({"medium_id": medium.id, "tag_id": tag_id})
+        media_tag = MediumTag()
+        media_tag.medium_id = medium.id
+        media_tag.tag_id = tag_id
+        session.add(media_tag)
 
-    if values:
-        insert = MediaTags.insert().values(values)
-        session.execute(insert)
-        session.commit()
+    session.commit()
 
 
 def _ensure_absent(medium: Medium, new_absent_tag_ids: Set[int]) -> None:
     session = g.db
 
-    absent_tags_to_delete = (
-        session.query(MediumTagAbsence)
+    session.execute(
+        delete(MediumTagAbsence)
         .filter(MediumTagAbsence.medium_id == medium.id)
-        .all()
+        .execution_options(synchronize_session=False)
     )
+    session.commit()
 
-    for tag in absent_tags_to_delete:
-        session.delete(tag)
-    if absent_tags_to_delete:
-        session.commit()
-
-    values = []
     for tag_id in new_absent_tag_ids:
         absence = MediumTagAbsence()
         absence.medium_id = medium.id
         absence.tag_id = tag_id
-        values.append(absence)
-
-    for absence in values:
         session.add(absence)
-    if values:
-        session.commit()
+
+    session.commit()
 
 
 def update_tags(medium: Medium, new_tags: Set[str]) -> bool:
@@ -178,7 +175,7 @@ def update_medium(
     new_absent_tags: List[str],
 ) -> Optional[MediumDetail]:
 
-    maybe_medium = Medium.query.get(medium_id)
+    maybe_medium = g.db.get(Medium, medium_id)
     if not maybe_medium:
         return None
 

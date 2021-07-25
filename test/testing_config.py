@@ -6,6 +6,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 COMMIT_ID = "TESTING"
 SENTRY_DSN = "https://examplePublicKey@o0.ingest.sentry.io/0"
+SENTRY_ENVIRONMENT = "testing"
 
 BEEVENUE_STORAGE = "./test"
 

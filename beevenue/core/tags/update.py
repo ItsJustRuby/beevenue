@@ -1,10 +1,11 @@
 from typing import Tuple, Union, Optional
 
+from sqlalchemy import select, update as sql_update
 from sqlalchemy.orm import joinedload
 from flask import g
 
 from ...signals import tag_renamed
-from ...models import Tag, MediaTags
+from ...models import Tag, MediumTag
 
 
 def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
@@ -14,8 +15,11 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
         return "You must specify a new name", None
 
     old_name = old_tag.tag
+    old_id = old_tag.id
 
-    new_tags = g.db.query(Tag).filter(Tag.tag == new_name).all()
+    new_tags = (
+        g.db.execute(select(Tag).filter(Tag.tag == new_name)).scalars().all()
+    )
 
     if len(new_tags) < 1:
         # New tag doesn't exist yet. We can simply rename "old_tag".
@@ -31,12 +35,13 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
     new_tag = new_tags[0]
 
     # if new_tag does exist, UPDATE all medium tags
-    # to reference new_tag instead of old_tag, then remove old_tag
-    MediaTags.update().where(MediaTags.c.tag_id == old_tag.id).values(
-        tag_id=new_tag.id
-    )
-
+    # to reference new_tag instead of old_tag and remove old_tag
     g.db.delete(old_tag)
+    g.db.execute(
+        sql_update(MediumTag)
+        .where(MediumTag.tag_id == old_id)
+        .values(tag_id=new_tag.id)
+    )
 
     tag_renamed.send(
         (

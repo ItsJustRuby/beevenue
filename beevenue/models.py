@@ -3,24 +3,23 @@ from typing import List, Optional
 
 from .db import db
 
-TagImplication = db.Table(
-    "tagImplication",
-    db.metadata,
-    db.Column(
-        "implying_tag_id",
+
+class TagImplication(db.Model):
+    __tablename__ = "tagImplication"
+    implying_tag_id = db.Column(
         db.Integer,
         db.ForeignKey("tag.id"),
         index=True,
         primary_key=True,
-    ),
-    db.Column(
-        "implied_tag_id",
+        nullable=False,
+    )
+    implied_tag_id = db.Column(
         db.Integer,
         db.ForeignKey("tag.id"),
         index=True,
         primary_key=True,
-    ),
-)
+        nullable=False,
+    )
 
 
 class Tag(db.Model):
@@ -31,22 +30,24 @@ class Tag(db.Model):
         db.Enum("e", "s", "q", "u", name="Rating"), nullable=False
     )
 
-    aliases = db.relationship("TagAlias", lazy="raise")
+    aliases = db.relationship("TagAlias", back_populates="tag", lazy="raise")
 
     implying_this = db.relationship(
         "Tag",
-        secondary=TagImplication,
-        primaryjoin=id == TagImplication.c.implied_tag_id,
-        secondaryjoin=id == TagImplication.c.implying_tag_id,
+        secondary=TagImplication.__tablename__,
+        primaryjoin=id == TagImplication.implied_tag_id,
+        secondaryjoin=id == TagImplication.implying_tag_id,
         lazy="raise",
+        back_populates="implied_by_this",
     )
 
     implied_by_this = db.relationship(
         "Tag",
-        secondary=TagImplication,
-        primaryjoin=id == TagImplication.c.implying_tag_id,
-        secondaryjoin=id == TagImplication.c.implied_tag_id,
+        secondary=TagImplication.__tablename__,
+        primaryjoin=id == TagImplication.implying_tag_id,
+        secondaryjoin=id == TagImplication.implied_tag_id,
         lazy="raise",
+        back_populates="implying_this",
     )
 
     def __init__(self, tag: str):
@@ -76,24 +77,22 @@ class TagAlias(db.Model):
         self.alias = alias
 
 
-MediaTags = db.Table(
-    "medium_tag",
-    db.metadata,
-    db.Column(
-        "medium_id",
+class MediumTag(db.Model):
+    __tablename__ = "medium_tag"
+    medium_id = db.Column(
         db.Integer,
         db.ForeignKey("medium.id"),
         index=True,
         primary_key=True,
-    ),
-    db.Column(
-        "tag_id",
+        nullable=False,
+    )
+    tag_id = db.Column(
         db.Integer,
         db.ForeignKey("tag.id"),
         index=True,
         primary_key=True,
-    ),
-)
+        nullable=False,
+    )
 
 
 class MediumTagAbsence(db.Model):
@@ -107,9 +106,6 @@ class MediumTagAbsence(db.Model):
     )
 
     __table_args__ = (db.UniqueConstraint("medium_id", "tag_id"),)
-
-    tag = db.relationship(Tag, lazy="raise")
-    medium = db.relationship("Medium", lazy="raise")
 
 
 class Medium(db.Model):
@@ -126,14 +122,14 @@ class Medium(db.Model):
 
     tags = db.relationship(
         "Tag",
-        secondary=MediaTags,
+        secondary=MediumTag.__tablename__,
         lazy="raise",
         backref=db.backref("media", lazy="raise"),
     )
 
     absent_tags = db.relationship(
         "Tag",
-        secondary="mediumTagAbsence",
+        secondary=MediumTagAbsence.__tablename__,
         lazy="raise",
     )
 

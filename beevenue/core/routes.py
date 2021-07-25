@@ -90,7 +90,9 @@ def get_magic_thumb(medium_id: int):  # type: ignore
     )
     # Note this must be distinct from the public route ("/thumbs"),
     # or Nginx will freak.
-    res.set_sendfile_header(Path("/", "beevenue_thumbs", thumb_path))
+    res.set_sendfile_header(  # pylint: disable=no-member
+        Path("/", "beevenue_thumbs", thumb_path)
+    )
 
     return res
 
@@ -103,5 +105,7 @@ def get_file(full_path: str):  # type: ignore
     )
     # Note this must be distinct from the public route ("/files"),
     # or Nginx will freak.
-    res.set_sendfile_header(Path("/", "media", full_path))
+    res.set_sendfile_header(  # pylint: disable=no-member
+        Path("/", "media", full_path)
+    )
     return res

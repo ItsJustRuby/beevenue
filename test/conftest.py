@@ -1,26 +1,13 @@
-# Ignore warning that SQLite + DECIMAL sucks.
 import json
 import os
 import re
 import shutil
 import sqlite3
 import tempfile
-import warnings
 
 import pytest
-from sqlalchemy.exc import SAWarning
 
 from beevenue.beevenue import get_application
-
-warnings.filterwarnings(
-    "ignore",
-    r"^Dialect sqlite\+pysqlite does \*not\* support Decimal objects "
-    r"natively\, and SQLAlchemy must convert from floating point - "
-    r"rounding errors and other issues may occur\. Please consider "
-    r"storing Decimal numbers as strings or integers on this platform "
-    r"for lossless storage\.$",
-    SAWarning,
-)
 
 
 def _resource(fname):
@@ -72,14 +59,16 @@ def _add_simple_images(fname, hash_prefixes):
 
 
 RAN_ONCE = False
+SQLITE_PROTOTYPE = None
 
 
 def _client():
     """Set up the testing client."""
-
     global RAN_ONCE
+
     temp_fd, temp_path = tempfile.mkstemp(suffix=".db")
     temp_nice_path = os.path.abspath(temp_path)
+
     connection_string = f"sqlite:///{temp_nice_path}"
 
     def extra_config(application):
@@ -88,7 +77,20 @@ def _client():
 
     def fill_db(db):
         """Create schema and fill the SQL database with initial data."""
-        db.create_all()
+        global SQLITE_PROTOTYPE
+
+        if not RAN_ONCE:
+            db.create_all()
+
+            with open(temp_path, "rb") as f:
+                SQLITE_PROTOTYPE = f.read()
+        else:
+            print("Overwriting DB with prototype")
+            with open(temp_nice_path, "wb") as target:
+                target.seek(0)
+                target.write(SQLITE_PROTOTYPE)
+                target.truncate()
+
         _run_testing_sql(temp_nice_path)
 
     app = get_application(extra_config, fill_db)
@@ -136,17 +138,18 @@ def _client():
 
     os.close(temp_fd)
     os.unlink(temp_path)
+
     RAN_ONCE = True
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def client():
     """Return the current testing client."""
     for c in _client():
         yield c
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def nsfw(client):
     """Ensure that the current session is not tagged as 'sfw'."""
     res = client.patch("/sfw", json={"sfwSession": False})
@@ -154,14 +157,14 @@ def nsfw(client):
     return None
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def asAdmin(client):
     """Ensure that we are logged in as the 'admin' role."""
     res = client.post("/login", json={"username": "admin", "password": "admin"})
     assert res.status_code == 200
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def withVideo(client):
     """Ensure that some uploaded video is available."""
     runner = client.app_under_test.test_cli_runner()
@@ -178,14 +181,14 @@ def withVideo(client):
     yield {"medium_id": medium_id}
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def asUser(client):
     """Ensure that we are logged in as the 'user' role."""
     res = client.post("/login", json={"username": "user", "password": "user"})
     assert res.status_code == 200
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def withTrivialRules(client):
     """Ensure that the 'trivial' ruleset is active."""
     with open("test/resources/testing_rules_trivial.json", "r") as f:

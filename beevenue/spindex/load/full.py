@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import Dict, Iterable, Set, Tuple
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from flask import g
 
@@ -41,9 +42,9 @@ def full_load() -> None:
         joinedload(Medium.tags), joinedload(Medium.absent_tags)
     ).all()
 
-    all_implications = session.query(TagImplication).all()
+    all_implications = session.execute(select(TagImplication)).scalars().all()
+    all_tags = session.execute(select(Tag)).scalars().all()
 
-    all_tags = session.query(Tag).all()
     tag_name_by_id = {t.id: t.tag for t in all_tags}
 
     # if Id=3 implies Id=5, implied_by_this[3] == set([5])
@@ -52,7 +53,7 @@ def full_load() -> None:
     for i in all_implications:
         implied_by_this[i.implying_tag_id].add(i.implied_tag_id)
 
-    all_aliases = session.query(TagAlias).all()
+    all_aliases = session.execute(select(TagAlias)).scalars().all()
 
     aliases_by_id = defaultdict(set)
     for alias in all_aliases:

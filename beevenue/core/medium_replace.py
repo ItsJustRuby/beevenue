@@ -32,7 +32,7 @@ def replace_medium(
     medium_id: int, file: FileStorage
 ) -> Optional[ReplacementFailure]:
     """Update file for medium with id ``medium_id``."""
-    maybe_medium = Medium.query.get(medium_id)
+    maybe_medium = g.db.get(Medium, medium_id)
     if not maybe_medium:
         return {"type": ReplacementFailureType.UNKNOWN_MEDIUM}
 

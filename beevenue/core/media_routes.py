@@ -155,9 +155,11 @@ def get_medium_zip(medium_id: int):  # type: ignore
     if status == 404:
         return "", 404
 
+    any_zip_bytes: Any = zip_bytes
+
     return send_file(
-        zip_bytes,
+        any_zip_bytes,
         mimetype="application/zip",
         as_attachment=True,
-        attachment_filename=f"{medium_id}.zip",
+        download_name=f"{medium_id}.zip",
     )

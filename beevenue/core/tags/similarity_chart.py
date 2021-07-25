@@ -2,8 +2,9 @@ from typing import Dict, Set, TypedDict
 from collections import defaultdict
 
 from flask import g
+from sqlalchemy import select
 
-from ...models import MediaTags, Tag
+from ...models import MediumTag, Tag
 from . import tag_name_selector
 from .censorship import Censorship
 
@@ -52,10 +53,12 @@ SimilarityMatrix = TypedDict(
 def get_similarity_matrix() -> SimilarityMatrix:
     session = g.db
 
-    all_tags = session.query(Tag).all()
+    all_tags = session.execute(select(Tag)).scalars().all()
+
     tag_dict = {t.id: t for t in all_tags}
 
-    media_tags = session.query(MediaTags).all()
+    media_tags = session.execute(select(MediumTag)).scalars().all()
+
     grouped_media_ids = defaultdict(set)
 
     for mediatag in media_tags:

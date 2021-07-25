@@ -5,7 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.scoping import scoped_session
 from werkzeug.local import LocalProxy
 
-db = SQLAlchemy()
+db = SQLAlchemy(
+    engine_options={
+        "future": True,
+    },
+    session_options={"future": True},
+)
 
 
 def init_app(app: Any) -> None:

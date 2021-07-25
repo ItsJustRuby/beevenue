@@ -43,6 +43,16 @@ def test_get_logged_in_as_user(client, asUser):
     assert res.status_code == 200
 
 
+def test_if_logged_in_as_user_with_faulty_session_nothing_crashes(
+    client, asUser
+):
+    with client.session_transaction() as session:
+        del session["role"]
+
+    res = client.get("/login")
+    assert res.status_code == 200
+
+
 def test_get_logged_in_anonymously(client):
     res = client.get("/login")
     assert res.status_code == 200

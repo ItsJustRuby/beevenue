@@ -1,6 +1,7 @@
 from typing import Iterable, Optional, Set, Tuple
 
 from flask import g
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from . import AbstractDataSource, create_spindexed_medium
@@ -13,31 +14,38 @@ class _SingleLoadDataSource(AbstractDataSource):
         self.session = g.db
 
     def alias_names(self, tag_ids: Iterable[int]) -> Set[str]:
-        tag_alias_entities = (
-            self.session.query(TagAlias)
-            .filter(TagAlias.tag_id.in_(tag_ids))
-            .with_entities(TagAlias.alias)
+        tag_aliases = (
+            self.session.execute(
+                select(TagAlias.alias).filter(TagAlias.tag_id.in_(tag_ids))
+            )
+            .scalars()
             .all()
         )
 
-        return {t[0] for t in tag_alias_entities}
+        return set(tag_aliases)
 
     def implied(self, tag_ids: Iterable[int]) -> Tuple[Set[int], Set[str]]:
-        implied_tag_id_entities = (
-            self.session.query(TagImplication)
-            .filter(TagImplication.c.implying_tag_id.in_(tag_ids))
-            .with_entities(TagImplication.c.implied_tag_id)
+        implied_tag_ids = (
+            self.session.execute(
+                select(TagImplication.implied_tag_id).filter(
+                    TagImplication.implying_tag_id.in_(tag_ids)
+                )
+            )
+            .scalars()
             .all()
         )
-        implied_tag_ids = {t[0] for t in implied_tag_id_entities}
 
-        implied_tag_name_entities = (
-            self.session.query(Tag)
-            .filter(Tag.id.in_(implied_tag_ids))
-            .with_entities(Tag.tag)
+        implied_tag_ids = set(implied_tag_ids)
+
+        implied_tag_names = (
+            self.session.execute(
+                select(Tag.tag).filter(Tag.id.in_(implied_tag_ids))
+            )
+            .scalars()
             .all()
         )
-        implied_tag_names = {t[0] for t in implied_tag_name_entities}
+
+        implied_tag_names = set(implied_tag_names)
 
         return implied_tag_ids, implied_tag_names
 
@@ -49,4 +57,5 @@ def single_load(medium_id: int) -> Optional[MediumDocument]:
         .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
         .first()
     )
+
     return create_spindexed_medium(_SingleLoadDataSource(), matching_medium)

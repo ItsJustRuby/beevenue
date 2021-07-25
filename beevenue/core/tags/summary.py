@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Callable, Dict, List
 
 from flask import g
+from sqlalchemy import select
 
 from beevenue.flask import BeevenueContext
 
@@ -21,11 +22,11 @@ def _load_tags(context: BeevenueContext) -> List[Tag]:
         else:
             tag_filter = Tag.rating.in_(["s", "q"])
 
-    query = g.db.query(Tag.id, Tag.tag, Tag.rating)
+    query = select(Tag.id, Tag.tag, Tag.rating)
     if tag_filter is not None:
         query = query.filter(tag_filter)
 
-    all_tags: List[Tag] = query.all()
+    all_tags: List[Tag] = g.db.execute(query).all()
     return all_tags
 
 
@@ -75,7 +76,9 @@ def get_summary(context: BeevenueContext) -> TagSummary:
     all_tags = _load_tags(context)
     media_counts = _load_media_counts()
 
-    all_direct_implications = g.db.query(TagImplication).all()
+    all_direct_implications = (
+        g.db.execute(select(TagImplication)).scalars().all()
+    )
 
     all_implied_ids = frozenset(
         [i.implied_tag_id for i in all_direct_implications]

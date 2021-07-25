@@ -11,7 +11,9 @@ from .spindex import Spindex
 def init_app(app: BeevenueFlask) -> None:
     _set_spindex()
     app.before_request(_set_spindex)
-    app.teardown_appcontext(_close_spindex)
+
+    teardown: Any = _close_spindex
+    app.teardown_appcontext(teardown)
 
     full_load()
     setup_signals()

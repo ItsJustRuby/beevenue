@@ -76,9 +76,9 @@ class BeevenueFlask(Flask):
         self.hostname = hostname
         self.port = port
 
-    def make_response(self, rv: Any) -> BeevenueResponse:
+    def make_response(self, rv: Any) -> Any:
         model = try_convert_model(rv)
-        res: BeevenueResponse = super().make_response(model)
+        res: Any = super().make_response(model)
         decorate_response(res, rv)
         return res
 
