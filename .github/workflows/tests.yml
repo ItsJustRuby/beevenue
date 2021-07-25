@@ -1,0 +1,18 @@
+name: Tests
+on:
+  push:
+    branches:
+      - "feature/**"
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Build base image for app
+        run: docker build . -t "beevenue-app" -f script/app.Dockerfile 
+      - name: Build base image for tests on top of app
+        run: docker build . -t "beevenue-test" -f script/test.Dockerfile 
+      - name: Run tests in docker
+        run: docker run --env COVERALLS_REPO_TOKEN="${{ secrets.COVERALLS_REPO_TOKEN }}" -t "beevenue-test"

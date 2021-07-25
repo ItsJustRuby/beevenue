@@ -1,0 +1,32 @@
+services:
+  pg:
+    image: postgres:13.3
+    environment:
+      - POSTGRES_USER=beevenue
+      - POSTGRES_PASSWORD=beevenue
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./pg-data:/var/lib/postgresql/data:rw
+  redis:
+    image: redis:6.2
+    volumes:
+      - ./redis-data:/var/lib/redis:rw
+    ports:
+      - "6379:6379"
+  nginx:
+    build:
+      context: .
+      dockerfile: ./script/nginx.Dockerfile
+    ports:
+      - "7000:8000"
+  app:
+    build:
+      context: .
+      dockerfile: ./script/app.Dockerfile
+    volumes:
+      - .:/beevenue
+    depends_on:
+      - pg
+      - redis
+      - nginx

@@ -7,8 +7,10 @@ beevenue_config.py
 beevenue_rules.json
 beevenue_cache/
 test-cache/
+pg-data
 
 __pycache__
 .cache
+.vscode
 .coverage
 coverage.xml
