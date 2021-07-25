@@ -2,6 +2,7 @@ from base64 import b64encode
 from pathlib import Path
 
 from flask import Blueprint, g, send_from_directory
+from sentry_sdk import start_span
 
 from beevenue import paths
 from beevenue.flask import request, BeevenueResponse
@@ -85,9 +86,11 @@ def get_magic_thumb(medium_id: int):  # type: ignore
 
     thumb_path = Path(f"{medium.medium_hash}.{size}.jpg")
 
-    res: BeevenueResponse = send_from_directory(  # type: ignore
-        paths.thumbnail_directory(), thumb_path
-    )
+    with start_span(op="http", description="send_from_directory"):
+        res: BeevenueResponse = send_from_directory(  # type: ignore
+            paths.thumbnail_directory(), thumb_path
+        )
+
     # Note this must be distinct from the public route ("/thumbs"),
     # or Nginx will freak.
     res.set_sendfile_header(  # pylint: disable=no-member
@@ -100,9 +103,11 @@ def get_magic_thumb(medium_id: int):  # type: ignore
 @bp.route("/files/<path:full_path>")
 @permissions.get_medium_file
 def get_file(full_path: str):  # type: ignore
-    res: BeevenueResponse = send_from_directory(  # type: ignore
-        paths.medium_directory(), full_path
-    )
+    with start_span(op="http", description="send_from_directory"):
+        res: BeevenueResponse = send_from_directory(  # type: ignore
+            paths.medium_directory(), full_path
+        )
+
     # Note this must be distinct from the public route ("/files"),
     # or Nginx will freak.
     res.set_sendfile_header(  # pylint: disable=no-member

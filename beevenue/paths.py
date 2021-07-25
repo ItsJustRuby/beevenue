@@ -4,9 +4,14 @@ from flask import current_app
 
 from beevenue.extensions import EXTENSIONS
 
+BASE_DIR: str = "%DEFAULT%"
+
 
 def _base_dir() -> str:
-    return current_app.config.get("BEEVENUE_STORAGE", "./")
+    global BASE_DIR  # pylint: disable=global-statement
+    if BASE_DIR == "%DEFAULT%":
+        BASE_DIR = current_app.config.get("BEEVENUE_STORAGE", "./")
+    return BASE_DIR
 
 
 def thumbnail_directory() -> str:

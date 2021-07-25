@@ -4,6 +4,7 @@ from typing import Dict, Generator, List, Set, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
 from flask.json import dumps
+from sentry_sdk import start_span
 
 from beevenue.flask import request
 
@@ -30,13 +31,14 @@ def _pretty_print(rule_breaks: Dict[int, List[Rule]]) -> Dict[int, List[str]]:
 
 
 def _current_rules() -> List[Rule]:
-    rules_file_path = current_app.config["BEEVENUE_RULES_FILE"]
-    with open(rules_file_path, "r") as rules_file:
-        rules_file_json = rules_file.read()
+    with start_span(op="http", description="Loading current rules"):
+        rules_file_path = current_app.config["BEEVENUE_RULES_FILE"]
+        with open(rules_file_path, "r") as rules_file:
+            rules_file_json = rules_file.read()
 
-    rules_file_json = rules_file_json or "[]"
+        rules_file_json = rules_file_json or "[]"
 
-    return decode_rules_json(rules_file_json)
+        return decode_rules_json(rules_file_json)
 
 
 @bp.route("/rules")
@@ -81,17 +83,21 @@ def validate_rules():  # type: ignore
 
 
 def _violating_medium_ids(rule: Rule) -> Set[int]:
-    medium_ids = rule.iff.get_medium_ids()
-    if not medium_ids:
-        return set([])
+    with start_span(op="http", description="_violating_medium_ids"):
+        with start_span(op="http", description="Checking iff"):
+            medium_ids = rule.iff.get_medium_ids()
 
-    invalid_medium_ids = set()
+        if not medium_ids:
+            return set([])
 
-    for then in rule.thens:
-        valid_medium_ids = then.get_medium_ids(medium_ids)
-        invalid_medium_ids |= set(medium_ids) - set(valid_medium_ids)
+        invalid_medium_ids = set()
 
-    return invalid_medium_ids
+        with start_span(op="http", description="Checking thens"):
+            for then in rule.thens:
+                valid_medium_ids = then.get_medium_ids(medium_ids)
+                invalid_medium_ids |= set(medium_ids) - set(valid_medium_ids)
+
+        return invalid_medium_ids
 
 
 def _get_rule_violations() -> Generator[Tuple[int, Rule], None, None]:
@@ -110,7 +116,9 @@ def get_missing_tags_for_post(medium_id: int):  # type: ignore
 @bp.route("/tags/missing/any", methods=["GET", "OPTION"])
 @permissions.is_owner
 def get_missing_tags_any():  # type: ignore
-    violations = list(_get_rule_violations())
+    with start_span(op="http", description="_get_rule_violations"):
+        violations = list(_get_rule_violations())
+
     if not violations:
         return _pretty_print({})
 

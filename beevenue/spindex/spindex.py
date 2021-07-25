@@ -2,6 +2,7 @@ from contextlib import AbstractContextManager, contextmanager
 from typing import Any, ContextManager, Generator, Iterable, List, Optional
 
 from beevenue.flask import request
+from sentry_sdk import start_span
 
 from ..cache import cache
 from .interface import SpindexSessionFactory
@@ -70,20 +71,23 @@ class Spindex:
         return _session(True)
 
     def all(self) -> Iterable[MediumDocument]:
-        with self._read_context as context:
-            return context.get_all()
+        with start_span(op="spindex", description="all"):
+            with self._read_context as context:
+                return context.get_all()
 
     def get_medium(self, medium_id: int) -> Optional[MediumDocument]:
-        with self._read_context as context:
-            return context.get_medium(medium_id)
+        with start_span(op="spindex", description="get_medium"):
+            with self._read_context as context:
+                return context.get_medium(medium_id)
 
     def get_media(self, ids: Iterable[int]) -> List[MediumDocument]:
-        with self._read_context as context:
-            maybe_media = [context.get_medium(i) for i in ids]
-            result: List[MediumDocument] = [
-                r for r in maybe_media if r is not None
-            ]
-            return result
+        with start_span(op="spindex", description="get_media"):
+            with self._read_context as context:
+                maybe_media = [context.get_medium(i) for i in ids]
+                result: List[MediumDocument] = [
+                    r for r in maybe_media if r is not None
+                ]
+                return result
 
     def add_alias(self, tag_name: str, new_alias: str) -> bool:
         with self._write_context as ctx:
@@ -138,8 +142,9 @@ class Spindex:
             return True
 
     def remove_medium(self, medium_id: int) -> Optional[MediumDocument]:
-        with self._write_context as ctx:
-            return ctx.remove_id(medium_id)
+        with start_span(op="spindex", description="remove_medium"):
+            with self._write_context as ctx:
+                return ctx.remove_id(medium_id)
 
     def add_media(self, media: Iterable[MediumDocument]) -> None:
         with _InitializationContext() as ctx:

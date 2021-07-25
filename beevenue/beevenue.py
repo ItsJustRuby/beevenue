@@ -55,7 +55,9 @@ def get_application(
         dsn=application.config["SENTRY_DSN"],
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
         environment=application.config.get("SENTRY_ENVIRONMENT", "production"),
-        traces_sample_rate=0.005,
+        traces_sample_rate=application.config.get(
+            "SENTRY_TRACES_SAMPLE_RATE", 0.1
+        ),
     )
 
     with application.app_context():

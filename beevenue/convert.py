@@ -1,6 +1,7 @@
 from typing import Any
 
 from flask import jsonify
+from sentry_sdk import start_span
 
 from .core.detail import MediumDetail
 from .core.search.batch_search_results import BatchSearchResults
@@ -31,10 +32,11 @@ def try_convert_model(model: Any) -> Any:
     convert them to JSON in this one central location, instead of in every
     endpoint separately."""
 
-    schema = SCHEMAS.get(type(model), None)
-    if not schema:
-        return model
-    return jsonify(schema.dump(model))
+    with start_span(op="http", description="try_convert_model"):
+        schema = SCHEMAS.get(type(model), None)
+        if not schema:
+            return model
+        return jsonify(schema.dump(model))
 
 
 def decorate_response(res: Any, model: Any) -> None:
@@ -43,9 +45,9 @@ def decorate_response(res: Any, model: Any) -> None:
     We use this to add preload headers for related files to that
     specified in the model Thanks to HTTP/2, this makes navigation much faster.
     """
-
-    if isinstance(model, MediumDetail):
-        res.push_medium(model)
-        res.push_thumbs(model.similar)
-    elif isinstance(model, Pagination) and model.items:
-        res.push_thumbs(model.items[:20])
+    with start_span(op="http", description="decorate_response"):
+        if isinstance(model, MediumDetail):
+            res.push_medium(model)
+            res.push_thumbs(model.similar)
+        elif isinstance(model, Pagination) and model.items:
+            res.push_thumbs(model.items[:20])
