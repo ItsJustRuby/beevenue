@@ -1,0 +1,21 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  deploy:
+    environment: bulbasaur
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Install dependencies
+        run: apt-get update && apt-get install rsync
+      - name: Temporarily store private key
+        run: echo -n "${{ secrets.BEEVENUE_CI_PKEY }}" > pkey
+      - name: Transfer files to bulbasaur
+        run: rsync -e "ssh -i pkey" -au . ${{ secrets.BEEVENUE_CI_ADDRESS }}:${{ secrets.BEEVENUE_CI_FOLDER }}
+      - name: Deploy
+        run: ssh ${{ secrets.BEEVENUE_CI_ADDRESS }} "cd ${{ secrets.BEEVENUE_CI_FOLDER }} && bash ./script/deploy.sh ${{ env.GITHUB_SHA }}}"
