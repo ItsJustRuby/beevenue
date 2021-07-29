@@ -12,11 +12,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y rsync
       - name: Register target's public key
         run: mkdir -p ~/.ssh/ && echo "${{ secrets.BEEVENUE_CI_SERVER_PUBLIC_KEY}}" > ~/.ssh/known_hosts
       - name: Temporarily store private key
         run: echo -n "${{ secrets.BEEVENUE_CI_PKEY }}" > ./id_rsa && chmod 600 ./id_rsa
       - name: Transfer files to bulbasaur
-        run: scp -i ./id_rsa -r ./* ${{ secrets.BEEVENUE_CI_ADDRESS }}:${{ secrets.BEEVENUE_CI_FOLDER }}
+        run: rsync -e "ssh -i ./id_rsa" --exclude ".git" --exclude "id_rsa" -avz . ${{ secrets.BEEVENUE_CI_ADDRESS }}:${{ secrets.BEEVENUE_CI_FOLDER }}
       - name: Deploy
         run: ssh -i ./id_rsa ${{ secrets.BEEVENUE_CI_ADDRESS }} "cd ${{ secrets.BEEVENUE_CI_FOLDER }} && bash ./script/deploy.sh $GITHUB_SHA"

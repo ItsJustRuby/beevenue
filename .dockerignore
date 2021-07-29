@@ -1,6 +1,10 @@
 media/*
 thumbs/*
-
+redis-data/*
+pg-data/*
+__pycache__/*
+.git/*
+.github/*
 **/__pycache__/*
 .cache/*
 **/*.pyc
