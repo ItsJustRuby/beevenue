@@ -6,7 +6,7 @@ from typing import Iterable
 import click
 from flask import g
 
-from .warmup import warmup
+from .cache import cache
 from .core.file_upload import create_medium_from_upload
 from .flask import BeevenueFlask
 from .io import HelperBytesIO
@@ -34,7 +34,7 @@ def init_cli(app: BeevenueFlask) -> None:
     @app.cli.command("warmup")
     def _warmup() -> None:
         g.spindex = _Nop()
-        warmup()
+        cache.fill()
 
     @app.cli.command("import")
     @click.argument("file_paths", nargs=-1, type=click.Path(exists=True))

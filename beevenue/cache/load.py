@@ -88,9 +88,12 @@ def _create_spindexed_medium(
 
 def full_load() -> Sequence[MediumDocument]:
     session = g.db
-    all_media = Medium.query.options(
-        joinedload(Medium.tags), joinedload(Medium.absent_tags)
-    ).all()
+
+    all_media = (
+        session.query(Medium)
+        .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
+        .all()
+    )
 
     all_implications = session.execute(select(TagImplication)).scalars().all()
     all_tags = session.execute(select(Tag)).scalars().all()

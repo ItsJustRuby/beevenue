@@ -24,7 +24,7 @@ from .login_manager import login_manager
 from .principal import principal
 from .spindex.init import init_app as spindex_init_app
 from .strawberry.init import init_app as strawberry_init_app
-from .warmup import warmup
+from .cache import cache
 
 
 def _nop(_: Any) -> None:
@@ -88,7 +88,7 @@ def get_application(
         # Only used for testing - in production, the cache is warmed up
         # via CLI before starting the webserver!
         if do_warmup:
-            warmup()
+            cache.fill()
 
     init_cli(application)
     auth_init_app()

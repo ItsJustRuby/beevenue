@@ -113,12 +113,10 @@ class BeevenueCache:
             list(media_document_dictionary.values()),
         )
 
-    def clear(self) -> None:
-        self.redis.flushall()
-
     def fill(self) -> None:
         tic = time.perf_counter()
         info("Starting warmup.")
+        self.redis.flushall()
         info("Loading all media.")
         all_media = full_load()
 
