@@ -93,7 +93,7 @@ def _client():
 
         _run_testing_sql(temp_nice_path)
 
-    app = get_application(extra_config, fill_db)
+    app = get_application(extra_config, fill_db, True)
 
     if not RAN_ONCE:
         _ensure_folder("media")
@@ -154,7 +154,6 @@ def nsfw(client):
     """Ensure that the current session is not tagged as 'sfw'."""
     res = client.patch("/sfw", json={"sfwSession": False})
     assert res.status_code == 200
-    return None
 
 
 @pytest.fixture

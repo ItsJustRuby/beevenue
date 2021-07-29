@@ -22,7 +22,7 @@ class PositiveSearchTerm(BasicSearchTerm):
         return f"{self.term}"
 
     def applies_to(self, medium: MediumDocument) -> bool:
-        return self.term in medium.tag_names.searchable
+        return self.term in medium.searchable_tag_names
 
     @classmethod
     def from_match(cls, match: Match) -> "PositiveSearchTerm":
@@ -41,7 +41,7 @@ class ExactSearchTerm(BasicSearchTerm):
         return f"+{self.term}"
 
     def applies_to(self, medium: MediumDocument) -> bool:
-        return self.term in medium.tag_names.innate
+        return self.term in medium.innate_tag_names
 
     @classmethod
     def from_match(cls, match: Match) -> "ExactSearchTerm":

@@ -1,5 +1,6 @@
 """Application factory. Lots of initial setup is performed here."""
 
+import logging
 import os
 from typing import Any, Callable
 
@@ -13,9 +14,8 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from .auth.auth import init as auth_init_app
 from .auth.routes import blueprint as auth_bp
-from .cache import init_app as cache_init_app
 from .cli import init_cli
-from .core import batch_routes, graphql_routes, media_routes, routes, tag_routes
+from .core import batch_routes, stats_routes, media_routes, routes, tag_routes
 from .db import db
 from .db import init_app as db_init_app
 from .flask import BeevenueFlask
@@ -23,8 +23,8 @@ from .init import init_app as context_init_app
 from .login_manager import login_manager
 from .principal import principal
 from .spindex.init import init_app as spindex_init_app
-from .spindex.routes import bp as spindex_bp
 from .strawberry.init import init_app as strawberry_init_app
+from .warmup import warmup
 
 
 def _nop(_: Any) -> None:
@@ -34,6 +34,7 @@ def _nop(_: Any) -> None:
 def get_application(
     extra_config: Callable[[BeevenueFlask], None] = _nop,
     fill_db: Callable[[SQLAlchemy], None] = _nop,
+    do_warmup: bool = False,
 ) -> BeevenueFlask:
     """Construct and return uWSGI application object."""
 
@@ -56,7 +57,7 @@ def get_application(
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
         environment=application.config.get("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=application.config.get(
-            "SENTRY_TRACES_SAMPLE_RATE", 0.1
+            "SENTRY_TRACES_SAMPLE_RATE", 0.0
         ),
     )
 
@@ -71,8 +72,7 @@ def get_application(
         application.register_blueprint(tag_routes.bp)
         application.register_blueprint(batch_routes.bp)
         application.register_blueprint(media_routes.bp)
-        application.register_blueprint(graphql_routes.bp)
-        application.register_blueprint(spindex_bp)
+        application.register_blueprint(stats_routes.bp)
 
         strawberry_init_app(application)
 
@@ -80,12 +80,15 @@ def get_application(
         # but before filling Spindex from DB.
         fill_db(db)
 
-        cache_init_app(application)
-
         if "BEEVENUE_SKIP_SPINDEX" in os.environ:
-            print("Skipping Spindex initialization")
+            logging.info("Skipping Spindex initialization")
         else:
             spindex_init_app(application)
+
+        # Only used for testing - in production, the cache is warmed up
+        # via CLI before starting the webserver!
+        if do_warmup:
+            warmup()
 
     init_cli(application)
     auth_init_app()

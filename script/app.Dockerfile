@@ -1,5 +1,4 @@
 FROM python:3.9
-
 WORKDIR /beevenue
 
 RUN apt-get update && apt-get install -y ffmpeg \
@@ -9,4 +8,5 @@ RUN apt-get update && apt-get install -y ffmpeg \
 COPY ./requirements.* /beevenue/
 RUN pip install -r requirements.txt -r requirements.linuxonly.txt
 
+COPY . /beevenue/
 CMD [ "sh", "script/release_server.sh" ]

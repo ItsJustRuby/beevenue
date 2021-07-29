@@ -57,6 +57,17 @@ def on_identity_loaded(_: Any, identity: Any) -> None:
 _allowed = Permission()
 
 
+def _can_see_rating(
+    rating: Optional[str],
+) -> Permission:
+    """Get Permission to see the specified medium."""
+
+    if not rating:
+        return _allowed
+
+    return Permission(_CanSeeMediumWithRatingNeed(rating))
+
+
 def _can_see_spindex_medium(
     maybe_medium: Optional[MediumDocument],
 ) -> Permission:
@@ -69,20 +80,13 @@ def _can_see_spindex_medium(
 
 
 def _can_see_medium(medium_id: int) -> Permission:
-    return _can_see_spindex_medium(g.spindex.get_medium(medium_id))
+    return _can_see_spindex_medium(g.spindex.get_tiny(medium_id))
 
 
 def _can_see_full_path(full_path: str) -> Permission:
     medium_hash = str(Path(full_path).with_suffix(""))
-    all_media = g.spindex.all()
-
-    matching = [m for m in all_media if m.medium_hash == medium_hash]
-
-    maybe_medium: Optional[MediumDocument] = None
-    if matching:
-        maybe_medium = matching[0]
-
-    return _can_see_spindex_medium(maybe_medium)
+    maybe_rating = g.spindex.get_rating_by_hash(medium_hash)
+    return _can_see_rating(maybe_rating)
 
 
 def _requires_permission(permission: Permission) -> RequirementDecorator:

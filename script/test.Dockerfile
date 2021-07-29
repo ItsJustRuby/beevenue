@@ -1,8 +1,8 @@
-FROM beevenue-app
+FROM beevenue-tests-app:beevenue-tests-app
 
 WORKDIR /beevenue
 COPY . /beevenue/
 
 RUN pip install -r requirements.cionly.txt
 
-ENTRYPOINT [ "sh", "script/coverage.sh" ]
+ENTRYPOINT [ "bash", "script/coverage.sh" ]

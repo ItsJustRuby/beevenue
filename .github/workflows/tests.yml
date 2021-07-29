@@ -10,9 +10,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
-      - name: Build base image for app
-        run: docker build . -t "beevenue-app" -f script/app.Dockerfile 
-      - name: Build base image for tests on top of app
-        run: docker build . -t "beevenue-test" -f script/test.Dockerfile 
+      - name: Build base image for tests
+        run: docker-compose -p beevenue-tests -f docker-compose.tests.yml build app tests
       - name: Run tests in docker
-        run: docker run --env COVERALLS_REPO_TOKEN="${{ secrets.COVERALLS_REPO_TOKEN }}" -t "beevenue-test"
+        run: docker-compose -f docker-compose.tests.yml -p beevenue-tests run -e COVERALLS_REPO_TOKEN="${{ secrets.COVERALLS_REPO_TOKEN }}" tests

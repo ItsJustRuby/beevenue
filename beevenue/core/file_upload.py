@@ -15,6 +15,7 @@ from beevenue.io import HelperBytesIO
 from ..models import Medium
 from ..signals import medium_added
 from .medium_update import update_rating, update_tags
+from . import thumbnails
 
 Uploadable = Union[HelperBytesIO, Any]
 
@@ -81,6 +82,7 @@ class UploadFailureType(Enum):
     SUCCESS = 0
     CONFLICTING_MEDIUM = 1
     UNKNOWN_MIME_TYPE = 2
+    COULD_NOT_THUMBNAIL = 4
 
 
 class _ConflictingMediumResult(TypedDict):
@@ -93,7 +95,14 @@ class _UnknownMimeTypeResult(TypedDict):
     mime_type: str
 
 
-UploadFailure = Union[_UnknownMimeTypeResult, _ConflictingMediumResult]
+class _CouldNotThumbnailResult(TypedDict):
+    type: Literal[UploadFailureType.COULD_NOT_THUMBNAIL]
+    message: str
+
+
+UploadFailure = Union[
+    _UnknownMimeTypeResult, _ConflictingMediumResult, _CouldNotThumbnailResult
+]
 
 UploadDetails = Tuple[str, str, str]
 
@@ -157,6 +166,13 @@ def create_medium_from_upload(
     upload_file(file, basename, extension)
 
     _maybe_add_tags(medium, file)
+
+    status, error = thumbnails.create(medium)
+    if status != 200:
+        return None, {
+            "type": UploadFailureType.COULD_NOT_THUMBNAIL,
+            "message": error,
+        }
 
     session.commit()
     medium_added.send(medium.id)

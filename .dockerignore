@@ -1,2 +1,6 @@
 media/*
 thumbs/*
+
+**/__pycache__/*
+.cache/*
+**/*.pyc

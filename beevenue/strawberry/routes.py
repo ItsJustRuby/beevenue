@@ -1,12 +1,12 @@
-from collections import defaultdict
 import random
-from typing import Dict, Generator, List, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
 from flask.json import dumps
 from sentry_sdk import start_span
 
 from beevenue.flask import request
+from beevenue.types import TinyMediumDocument
 
 from .. import permissions
 from .json import decode_rules_json, decode_rules_list
@@ -39,6 +39,31 @@ def _current_rules() -> List[Rule]:
         rules_file_json = rules_file_json or "[]"
 
         return decode_rules_json(rules_file_json)
+
+
+def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
+    all_media = g.spindex.get_all_tiny()
+
+    sorted_ratings = ["s", "q", "e", "u"]
+    semirandom_sorting_index = {
+        m.medium_id: sorted_ratings.index(m.rating) + random.uniform(-0.4, 0.4)
+        for m in all_media
+    }
+
+    def shuffler(medium: TinyMediumDocument) -> float:
+        return semirandom_sorting_index[medium.medium_id]
+
+    all_media.sort(key=shuffler)
+
+    rules = _current_rules()
+    random.shuffle(rules)
+
+    for medium in all_media:
+        for rule in rules:
+            if rule.is_violated_by(medium):
+                return (medium.medium_id, rule)
+
+    return None
 
 
 @bp.route("/rules")
@@ -82,64 +107,20 @@ def validate_rules():  # type: ignore
         return {"ok": False, "data": str(exception)}, 200
 
 
-def _violating_medium_ids(rule: Rule) -> Set[int]:
-    with start_span(op="http", description="_violating_medium_ids"):
-        with start_span(op="http", description="Checking iff"):
-            medium_ids = rule.iff.get_medium_ids()
-
-        if not medium_ids:
-            return set([])
-
-        invalid_medium_ids = set()
-
-        with start_span(op="http", description="Checking thens"):
-            for then in rule.thens:
-                valid_medium_ids = then.get_medium_ids(medium_ids)
-                invalid_medium_ids |= set(medium_ids) - set(valid_medium_ids)
-
-        return invalid_medium_ids
-
-
-def _get_rule_violations() -> Generator[Tuple[int, Rule], None, None]:
-    for rule in _current_rules():
-        for violating_medium_id in _violating_medium_ids(rule):
-            yield (violating_medium_id, rule)
-
-
 @bp.route("/tags/missing/<int:medium_id>", methods=["GET", "OPTION"])
 @permissions.get_medium
 def get_missing_tags_for_post(medium_id: int):  # type: ignore
-    broken_rules = [r for r in _current_rules() if r.is_violated_by(medium_id)]
+    medium = g.spindex.get_tiny(medium_id)
+    broken_rules = [r for r in _current_rules() if r.is_violated_by(medium)]
     return _pretty_print({medium_id: broken_rules})
 
 
 @bp.route("/tags/missing/any", methods=["GET", "OPTION"])
 @permissions.is_owner
 def get_missing_tags_any():  # type: ignore
-    with start_span(op="http", description="_get_rule_violations"):
-        violations = list(_get_rule_violations())
-
-    if not violations:
+    maybe_violation = _random_rule_violation()
+    if not maybe_violation:
         return _pretty_print({})
 
-    all_media = g.spindex.all()
-
-    violation_medium_ids = frozenset(v[0] for v in violations)
-    media = [m for m in all_media if m.medium_id in violation_medium_ids]
-    rating_by_id = {m.medium_id: m.rating for m in media}
-
-    violations_by_rating = defaultdict(list)
-    for violation in violations:
-        medium_id, rule = violation
-        violations_by_rating[rating_by_id[medium_id]].append(violation)
-
-    current_rating_violations = None
-
-    for rating in ["s", "q", "e", "u"]:  # pragma: no cover
-        current_violations = violations_by_rating[rating]
-        if current_violations:
-            current_rating_violations = current_violations
-            break
-
-    (medium_id, rule) = random.choice(current_rating_violations)
+    medium_id, rule = maybe_violation
     return _pretty_print({medium_id: [rule]})

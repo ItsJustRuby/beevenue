@@ -1,6 +1,6 @@
-from typing import FrozenSet, List, Optional
+from typing import FrozenSet
 
-from beevenue.types import MediumDocument
+from beevenue.types import TinyMediumDocument
 from .common import TagsRulePart, Then
 
 
@@ -16,15 +16,11 @@ class HasAllTagsAbsentOrPresent(TagsRulePart, Then):
         TagsRulePart.__init__(self)
         self.tag_names: FrozenSet[str] = frozenset(tag_names)
 
-    def _filter_predicate(self, medium: MediumDocument) -> bool:
-        for tag_name in self.tag_names:
-            if tag_name in medium.tag_names.searchable:
-                continue
-            if tag_name in medium.absent_tag_names:
-                continue
-            return False
-
-        return True
+    def _filter_predicate(self, medium: TinyMediumDocument) -> bool:
+        result: bool = self.tag_names <= (
+            medium.searchable_tag_names | medium.absent_tag_names
+        )
+        return result
 
     @property
     def _tags_as_str(self) -> str:
@@ -43,12 +39,7 @@ class Fail(Then):
     This allows you to construct rules of the form "No media to which this Iff
     applies should exist at all."""
 
-    def get_medium_ids(
-        self, filtering_medium_ids: Optional[List[int]] = None
-    ) -> List[int]:
-        return []
-
-    def applies_to(self, medium_id: int) -> bool:
+    def applies_to(self, _: TinyMediumDocument) -> bool:
         return False
 
     def pprint_then(self) -> str:

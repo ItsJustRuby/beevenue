@@ -6,7 +6,7 @@ from sqlalchemy import select, delete
 from beevenue.flask import request
 
 from . import tags
-from ..types import MediumDocument
+from ..types import TinyMediumDocument
 from ..models import MediumTag, Medium, Tag, MediumTagAbsence
 from ..signals import medium_updated
 from .detail import MediumDetail
@@ -144,7 +144,7 @@ def _reject_implication_overlap(
     # Figure out if we want to mark a tag as both absent and implied. Reject.
     spindex_medium = g.spindex.get_medium(medium.id)
 
-    if new_absent_tags & spindex_medium.tag_names.searchable:
+    if new_absent_tags & spindex_medium.searchable_tag_names:
         return True
 
     return False
@@ -184,7 +184,7 @@ def update_medium(
 
     medium_updated.send(maybe_medium.id)
 
-    result: MediumDocument = g.spindex.get_medium(  # type: ignore
+    result: TinyMediumDocument = g.spindex.get_medium(  # type: ignore
         maybe_medium.id
     )
 

@@ -44,10 +44,6 @@ def test_fail_applies_to_nothing():
     assert not Fail().applies_to(42)
 
 
-def test_fail_never_has_medium_ids():
-    assert not Fail().get_medium_ids()
-
-
 @pytest.mark.parametrize("rule", rules)
 def test_pprint_normal_case(rule):
     printed = rule.pprint()

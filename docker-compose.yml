@@ -10,7 +10,9 @@ services:
     volumes:
       - ./pg-data:/var/lib/postgresql/data:rw
   redis:
-    image: redis:6.2
+    build:
+      context: .
+      dockerfile: ./script/redis.Dockerfile
     volumes:
       - ./redis-data:/var/lib/redis:rw
     ports:
@@ -19,6 +21,11 @@ services:
     build:
       context: .
       dockerfile: ./script/nginx.Dockerfile
+    volumes:
+      # By mounting these files locally, we can use "sendfile" support to send the files
+      # directly from this container instead of round-tripping through "app".
+      - ./media:/beevenue/media:ro
+      - ./thumbs:/beevenue/thumbs:ro
     ports:
       - "7000:8000"
   app:

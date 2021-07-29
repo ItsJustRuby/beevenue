@@ -1,10 +1,10 @@
 from typing import List
 
-from ..types import MediumDocument
+from ..types import TinyMediumDocument
 
 
 class MediumDetail(  # pylint: disable=too-many-instance-attributes
-    MediumDocument
+    TinyMediumDocument
 ):
     """Viewmodel extending MediumDocument.
 
@@ -12,16 +12,18 @@ class MediumDetail(  # pylint: disable=too-many-instance-attributes
 
     __slots__ = ["similar"]
 
-    similar: List[MediumDocument]
+    similar: List[TinyMediumDocument]
 
-    def __init__(self, medium: MediumDocument, similar: List[MediumDocument]):
+    def __init__(
+        self, medium: TinyMediumDocument, similar: List[TinyMediumDocument]
+    ):
         self.medium_id = medium.medium_id
         self.aspect_ratio = medium.aspect_ratio
         self.medium_hash = medium.medium_hash
         self.mime_type = medium.mime_type
         self.rating = medium.rating
-        self.tiny_thumbnail = medium.tiny_thumbnail
-        self.tag_names = medium.tag_names
+        self.innate_tag_names = medium.innate_tag_names
+        self.searchable_tag_names = medium.searchable_tag_names
         self.absent_tag_names = medium.absent_tag_names
 
         self.similar = similar

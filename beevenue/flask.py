@@ -7,7 +7,7 @@ from flask import request as flask_request
 
 from .convert import decorate_response, try_convert_model
 from .extensions import EXTENSIONS
-from .spindex.interface import SpindexSessionFactory
+from .spindex.spindex import Spindex
 from .types import MediumDocument
 
 
@@ -23,7 +23,7 @@ class BeevenueRequest(Request):
     """Customized request class."""
 
     beevenue_context: BeevenueContext
-    spindex_session: SpindexSessionFactory
+    spindex: Spindex
 
 
 request: BeevenueRequest = flask_request  # type: ignore

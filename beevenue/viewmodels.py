@@ -23,7 +23,7 @@ class _MediumDocumentSchema(Schema):
 
     def extract_innate_tags(self, obj: MediumDocument) -> List[str]:
         return [  # pylint: disable=unnecessary-comprehension
-            t for t in obj.tag_names.innate
+            t for t in obj.innate_tag_names
         ]
 
     def extract_absent_tags(self, obj: MediumDocument) -> List[str]:
@@ -40,9 +40,7 @@ class _PaginationMediumSchema(_MediumDocumentSchema):
     tiny_thumbnail = fields.Method("get_thumb", data_key="tinyThumbnail")
 
     def get_thumb(self, obj: MediumDocument) -> Optional[str]:
-        if obj.tiny_thumbnail:
-            return base64.b64encode(obj.tiny_thumbnail).decode("utf-8")
-        return None
+        return base64.b64encode(obj.tiny_thumbnail).decode("utf-8")
 
 
 class _BatchSearchResultsSchema(Schema):

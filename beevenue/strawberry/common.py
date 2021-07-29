@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from beevenue.types import MediumDocument
+from beevenue.types import TinyMediumDocument
 import re
-from typing import FrozenSet, List, Optional, Any
+from typing import FrozenSet, Optional, Any
 
 from flask import g
 
@@ -10,14 +10,8 @@ class RulePart(ABC):
     """Abstract base class for all rule parts (both iffs and thens)."""
 
     @abstractmethod
-    def applies_to(self, medium_id: int) -> bool:
-        """Does this part of the rule apply to the medium with that id?"""
-
-    @abstractmethod
-    def get_medium_ids(
-        self, filtering_medium_ids: Optional[List[int]] = None
-    ) -> List[int]:
-        """Load media this Iff applies to OR filter ids this Then applies to."""
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
+        """Does this part of the rule apply to this medium?"""
 
 
 class Iff(RulePart):
@@ -58,7 +52,7 @@ class TagsRulePart(RulePart):
         """Pretty-printed version of self.tag_names for user display."""
 
     @abstractmethod
-    def _filter_predicate(self, medium: MediumDocument) -> bool:
+    def _filter_predicate(self, medium: TinyMediumDocument) -> bool:
         """Returns true iff this rule part applies to that medium document."""
 
     def _ensure_tag_names_loaded(self) -> None:
@@ -67,45 +61,23 @@ class TagsRulePart(RulePart):
 
         self._load_tag_names()
 
-    def applies_to(self, medium_id: int) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         self._ensure_tag_names_loaded()
         if not self.tag_names:
-            return False
-
-        medium = g.spindex.get_medium(medium_id)
-        if not medium:
             return False
 
         return self._filter_predicate(medium)
-
-    def get_medium_ids(
-        self, filtering_medium_ids: Optional[List[int]] = None
-    ) -> List[int]:
-        self._ensure_tag_names_loaded()
-        if not self.tag_names:
-            return []
-
-        all_media = g.spindex.all()
-
-        if filtering_medium_ids:
-            all_media = [
-                m for m in all_media if m.medium_id in filtering_medium_ids
-            ]
-
-        all_media = [m for m in all_media if self._filter_predicate(m)]
-
-        return [m.medium_id for m in all_media]
 
 
 class HasAnyTags(TagsRulePart):
     """Base class for rule parts that check some tags are present or not."""
 
-    def _filter_predicate(self, medium: MediumDocument) -> bool:
+    def _filter_predicate(self, medium: TinyMediumDocument) -> bool:
         # self.tag_names is Optional during initialization, but always
         # non-optional after that. This type hint helps mypy.
         valid_tag_names: Any = self.tag_names
 
-        return len(valid_tag_names & medium.tag_names.searchable) > 0
+        return len(valid_tag_names & medium.searchable_tag_names) > 0
 
 
 class HasAnyTagsLike(HasAnyTags, IffAndThen):
@@ -121,9 +93,7 @@ class HasAnyTagsLike(HasAnyTags, IffAndThen):
     def _load_tag_names(self) -> None:
         tag_names = set()
 
-        all_tag_names = set()
-        for medium in g.spindex.all():
-            all_tag_names |= medium.tag_names.searchable
+        all_tag_names = set(g.spindex.get_all_searchable_tag_names())
 
         for regex in self.regexes:
             compiled_regex = re.compile(f"^{regex}$")
@@ -174,28 +144,7 @@ class HasRating(IffAndThen):
     def __init__(self, rating: Optional[str] = None):
         self.rating: Optional[str] = rating
 
-    def get_medium_ids(
-        self, filtering_medium_ids: Optional[List[int]] = None
-    ) -> List[int]:
-        all_media = g.spindex.all()
-
-        if filtering_medium_ids:
-            all_media = [
-                m for m in all_media if m.medium_id in filtering_medium_ids
-            ]
-
-        if self.rating:
-            all_media = [m for m in all_media if m.rating == self.rating]
-        else:
-            all_media = [m for m in all_media if m.rating != "u"]
-
-        return [m.medium_id for m in all_media]
-
-    def applies_to(self, medium_id: int) -> bool:
-        medium = g.spindex.get_medium(medium_id)
-        if not medium:
-            return False
-
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         if self.rating:
             has_correct_rating: bool = medium.rating == self.rating
             return has_correct_rating

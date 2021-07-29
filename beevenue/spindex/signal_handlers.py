@@ -27,7 +27,7 @@ def _rename_tag(names: Tuple[str, str]) -> None:
 
 def _cleanup_medium(medium_id: int) -> None:
     delete_orphans()
-    g.spindex.remove_medium(medium_id)
+    g.spindex.remove(medium_id)
 
 
 def _add_alias(msg: Tuple[str, str]) -> None:

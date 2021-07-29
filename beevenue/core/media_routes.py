@@ -5,7 +5,7 @@ from flask import make_response, render_template, send_file, Blueprint
 from beevenue.flask import request
 
 from .. import notifications, permissions, schemas
-from . import media, thumbnails
+from . import media
 from .file_upload import create_medium_from_upload, UploadFailureType
 from .medium_replace import replace_medium
 from .medium_update import update_medium
@@ -87,9 +87,11 @@ def form_upload_medium():  # type: ignore
             400,
         )
 
-    status, error = thumbnails.create(medium_id)
-    if status == 400:
-        return notifications.simple_error(error), 400
+    if failure and failure["type"] == UploadFailureType.COULD_NOT_THUMBNAIL:
+        return (
+            notifications.simple_error(failure["message"]),
+            400,
+        )
 
     return notifications.medium_uploaded(medium_id), 200
 

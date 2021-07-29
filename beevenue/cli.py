@@ -6,7 +6,7 @@ from typing import Iterable
 import click
 from flask import g
 
-from .core import thumbnails
+from .warmup import warmup
 from .core.file_upload import create_medium_from_upload
 from .flask import BeevenueFlask
 from .io import HelperBytesIO
@@ -21,7 +21,7 @@ class _Nop:
     def reindex_medium(self, medium_id: int) -> None:
         """Do nothing, intentionally."""
 
-    def remove_id(self, medium_id: int) -> None:
+    def remove(self, medium_id: int) -> None:
         """Do nothing, intentionally."""
 
     def add(self, _: object) -> None:
@@ -30,6 +30,11 @@ class _Nop:
 
 def init_cli(app: BeevenueFlask) -> None:
     """Initialize CLI component of the application."""
+
+    @app.cli.command("warmup")
+    def _warmup() -> None:
+        g.spindex = _Nop()
+        warmup()
 
     @app.cli.command("import")
     @click.argument("file_paths", nargs=-1, type=click.Path(exists=True))
@@ -51,6 +56,4 @@ def init_cli(app: BeevenueFlask) -> None:
                 print(f"Could not upload file {path}: {failure}")
                 continue
 
-            print("Creating thumbnails...")
-            thumbnails.create(medium_id)
             print(f"Successfully imported {path} (Medium {medium_id})")

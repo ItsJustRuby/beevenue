@@ -2,7 +2,7 @@ from typing import List, Set, TypeVar
 
 from flask import g
 
-from beevenue.flask import BeevenueContext, request
+from beevenue.flask import request
 
 from ...types import MediumDocument
 
@@ -36,15 +36,12 @@ def run(search_term_list: List[str]) -> Pagination[MediumDocument]:
 
 
 def _run_unpaginated(search_terms: Set[SearchTerm]) -> BatchSearchResults:
-    context = request.beevenue_context
-    medium_ids = _search(context, search_terms)
-
-    return BatchSearchResults(list(g.spindex.get_media(medium_ids)))
+    medium_ids = _search(search_terms)
+    return BatchSearchResults(list(g.spindex.get_many(medium_ids)))
 
 
 def _run_paginated(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
-    context = request.beevenue_context
-    medium_ids = _search(context, search_terms)
+    medium_ids = _search(search_terms)
 
     if not medium_ids:
         return Pagination.empty()
@@ -52,16 +49,11 @@ def _run_paginated(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
     sorted_medium_ids = list(medium_ids)
     sorted_medium_ids.sort(reverse=True)
     pagination = _paginate(sorted_medium_ids)
-    media = g.spindex.get_media(pagination.items)
-
-    pagination.items = media  # type: ignore
-
     return pagination  # type: ignore
 
 
-def _censor(
-    context: BeevenueContext, search_terms: Set[SearchTerm]
-) -> Set[SearchTerm]:
+def _censor(search_terms: Set[SearchTerm]) -> Set[SearchTerm]:
+    context = request.beevenue_context
     search_terms = set(search_terms)
 
     if context.is_sfw:
@@ -73,12 +65,10 @@ def _censor(
     return search_terms
 
 
-def _search(
-    context: BeevenueContext, search_terms: Set[SearchTerm]
-) -> Set[int]:
-    search_terms = _censor(context, search_terms)
+def _search(search_terms: Set[SearchTerm]) -> Set[int]:
+    search_terms = _censor(search_terms)
 
-    all_media = g.spindex.all()
+    all_media = g.spindex.get_all_tiny()
     result = set()
 
     for medium in all_media:
@@ -116,8 +106,10 @@ def _paginate(ids: List[TItem]) -> Pagination[TItem]:
     if (len(ids) % page_size) != 0:
         page_count += 1
 
+    paginated_ids = ids[skip : skip + page_size]
+
     return Pagination(
-        items=ids[skip : skip + page_size],
+        items=g.spindex.get_many(paginated_ids),
         page_count=page_count,
         page_number=page_number,
         page_size=page_size,

@@ -1,3 +1,4 @@
+from beevenue.types import TinyMediumDocument
 from typing import Iterable
 
 from .common import Iff, Then
@@ -15,15 +16,15 @@ class Rule:
         self.iff = iff
         self.thens = thens
 
-    def is_violated_by(self, medium_id: int) -> bool:
+    def is_violated_by(self, medium: TinyMediumDocument) -> bool:
         """Check if that medium violates this rule."""
 
-        applies = self.iff.applies_to(medium_id)
+        applies = self.iff.applies_to(medium)
         if not applies:
             return False
 
         for then in self.thens:
-            if not then.applies_to(medium_id):
+            if not then.applies_to(medium):
                 return True
 
         return False

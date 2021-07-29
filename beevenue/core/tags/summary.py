@@ -38,11 +38,11 @@ def _load_media_counts() -> CountsType:
     i.e. d["foo"] = {"q": 2, "e": 1, "s": 0, "u": 0}
     """
 
-    all_media = g.spindex.all()
+    all_media = g.spindex.get_all_tiny()
     counts: CountsType = defaultdict(lambda: defaultdict(int))
 
     for medium in all_media:
-        for name in medium.tag_names.innate:
+        for name in medium.innate_tag_names:
             counts[name][medium.rating] += 1
 
     return counts

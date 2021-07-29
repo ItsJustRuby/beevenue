@@ -53,25 +53,21 @@ def pick(medium_id: int, thumb_index: int, thumbnail_count: int) -> int:
 
     origin_path, medium = details
     ffmpeg.pick(thumbnail_count, origin_path, thumb_index, medium.hash)
-    _generate_tiny(medium_id)
+    _generate_tiny(medium)
     return 200
 
 
-def create(medium_id: int) -> Tuple[int, str]:
+def create(medium: Medium) -> Tuple[int, str]:
     session = g.db
-    maybe_medium = session.get(Medium, medium_id)
 
-    if not maybe_medium:
-        return 404, ""
-
-    thumbnailing_result = _create(maybe_medium.mime_type, maybe_medium.hash)
+    thumbnailing_result = _create(medium.mime_type, medium.hash)
 
     if thumbnailing_result.error:
         return 400, thumbnailing_result.error
 
-    maybe_medium.aspect_ratio = thumbnailing_result.aspect_ratio
+    medium.aspect_ratio = thumbnailing_result.aspect_ratio
     session.commit()
-    _generate_tiny(medium_id)
+    _generate_tiny(medium)
     return 200, ""
 
 
@@ -86,11 +82,10 @@ def _create(mime_type: str, medium_hash: str) -> ThumbnailingResult:
     return ffmpeg.thumbnails(origin_path, extensionless_thumb_path, mime_type)
 
 
-def _generate_tiny(medium_id: int) -> None:
+def _generate_tiny(medium: Medium) -> None:
     size, _ = list(current_app.config["BEEVENUE_THUMBNAIL_SIZES"].items())[0]
     tiny_thumb_res = current_app.config["BEEVENUE_TINY_THUMBNAIL_SIZE"]
 
-    medium = g.db.get(Medium, medium_id)
     out_path = paths.thumbnail_path(medium_hash=medium.hash, size=size)
 
     with Image.open(out_path, "r") as img:
@@ -104,5 +99,5 @@ def _generate_tiny(medium_id: int) -> None:
             out_bytes = out_bytes_io.getvalue()
 
     medium.tiny_thumbnail = out_bytes
-    medium_updated.send(medium.id)
     g.db.commit()
+    medium_updated.send(medium.id)

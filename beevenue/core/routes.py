@@ -10,6 +10,7 @@ from beevenue.flask import request, BeevenueResponse
 from .. import notifications, permissions
 from . import thumbnails
 from .search import search
+from ..models import Medium
 from .schemas import search_query_params_schema
 
 bp = Blueprint("routes", __name__)
@@ -25,10 +26,11 @@ def search_endpoint():  # type: ignore
 @bp.route("/thumbnail/<int:medium_id>", methods=["PATCH"])
 @permissions.is_owner
 def create_thumbnail(medium_id: int):  # type: ignore
-    status_code, message = thumbnails.create(medium_id)
-
-    if status_code == 404:
+    medium = g.db.get(Medium, medium_id)
+    if not medium:
         return notifications.no_such_medium(medium_id), 404
+
+    status_code, message = thumbnails.create(medium)
 
     return message, status_code
 

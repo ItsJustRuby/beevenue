@@ -36,7 +36,7 @@ class CountingSearchTerm(SearchTerm):
             raise Exception(f"Unknown operator in {self}")
 
         # Note! Only count *innate* tags, not implications, aliases, etc...
-        return operator(len(medium.tag_names.innate), self.number)
+        return operator(len(medium.innate_tag_names), self.number)
 
     def __repr__(self) -> str:
         return f"tags{self.operator}{self.number}"
@@ -61,7 +61,7 @@ class CategorySearchTerm(SearchTerm):
     def applies_to(self, medium: MediumDocument) -> bool:
         matching_tag_names = [
             t
-            for t in medium.tag_names.innate
+            for t in medium.innate_tag_names
             if t.startswith(f"{self.category}:")
         ]
 

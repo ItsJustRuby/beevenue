@@ -4,7 +4,6 @@ from flask import current_app, session
 from flask_login import current_user
 
 from .flask import BeevenueContext, BeevenueFlask, BeevenueResponse, request
-from .spindex.spindex import CachingSessionFactory
 
 
 def _context_setter() -> None:
@@ -86,26 +85,12 @@ def _set_sendfile_header(res: BeevenueResponse) -> BeevenueResponse:
     return res
 
 
-def _spindex_initialize() -> None:
-    """Set request.spindex_session to caching implementation."""
-    request.spindex_session = CachingSessionFactory()
-
-
-def _spindex_teardown(res: BeevenueResponse) -> BeevenueResponse:
-    """Flush cached spindex implementation if necessary."""
-    if hasattr(request, "spindex_session"):
-        request.spindex_session.exit()
-    return res
-
-
 def init_app(app: BeevenueFlask) -> None:
     """Register request/response lifecycle methods."""
 
     app.before_request(_context_setter)
     app.before_request(_login_required_by_default)
-    app.before_request(_spindex_initialize)
 
     app.after_request(_set_client_hint_headers)  # type: ignore
     app.after_request(_set_server_push_link_header)  # type: ignore
     app.after_request(_set_sendfile_header)  # type: ignore
-    app.after_request(_spindex_teardown)  # type: ignore

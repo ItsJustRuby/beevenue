@@ -3,7 +3,6 @@ from typing import Any
 from flask import g
 
 from ..flask import BeevenueFlask
-from .load.full import full_load
 from .signal_handlers import setup_signals
 from .spindex import Spindex
 
@@ -15,7 +14,6 @@ def init_app(app: BeevenueFlask) -> None:
     teardown: Any = _close_spindex
     app.teardown_appcontext(teardown)
 
-    full_load()
     setup_signals()
 
 

@@ -6,6 +6,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 COMMIT_ID = "TESTING"
 SENTRY_DSN = "https://examplePublicKey@o0.ingest.sentry.io/0"
+SENTRY_TRACES_SAMPLE_RATE = 0.0
 SENTRY_ENVIRONMENT = "testing"
 
 BEEVENUE_STORAGE = "./test"
@@ -19,5 +20,3 @@ BEEVENUE_MINIMUM_ASPECT_RATIO = 0.5
 BEEVENUE_RULES_FILE = "test/resources/testing_rules.json"
 
 SECRET_KEY = "TESTING_ONLY"
-
-CACHE_DIR = "./test-cache"

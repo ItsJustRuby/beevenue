@@ -10,8 +10,15 @@ from beevenue.core.search import complex, simple
 from beevenue.core.search.pagination import Pagination
 from beevenue.models import Tag
 from beevenue.permissions import _CanSeeMediumWithRatingNeed
-from beevenue.spindex.models import SpindexedMedium, SpindexedMediumTagNames
-from beevenue.strawberry.common import HasAnyTagsIn, HasRating
+from beevenue.documents import SpindexedMedium, TinySpindexedMedium
+
+
+def _assert_equally_hashed(x1, x2):
+    assert not x1 == object()
+    assert not x2 == object()
+    assert hash(x1) == hash(x2)
+    assert x1 == x2
+    assert len(set([x1, x2])) == 1
 
 
 def test_permission_need_internals():
@@ -29,27 +36,52 @@ def test_spindexed_medium_internals():
         "mime",
         "q",
         bytes(),
-        SpindexedMediumTagNames([], []),
-        set(),
+        frozenset(),
+        frozenset(),
+        frozenset(),
     )
+
+    medium_with_same_id = SpindexedMedium(
+        1,
+        "2.0",
+        "someOtherHash",
+        "mime",
+        "q",
+        bytes(),
+        frozenset(),
+        frozenset(),
+        frozenset(),
+    )
+
     assert len(medium.__str__()) > 0
     assert len(medium.__repr__()) > 0
+    _assert_equally_hashed(medium, medium_with_same_id)
+
+
+def test_tiny_spindexed_medium_internals():
+    medium = TinySpindexedMedium(
+        1,
+        "q",
+        frozenset(),
+        frozenset(),
+        frozenset(),
+    )
+
+    medium_with_same_id = TinySpindexedMedium(
+        1,
+        "e",
+        frozenset(),
+        frozenset(),
+        frozenset(),
+    )
+
+    assert len(medium.__str__()) > 0
+    assert len(medium.__repr__()) > 0
+    _assert_equally_hashed(medium, medium_with_same_id)
 
 
 def test_tag_cannot_be_created_empty(client):
     assert Tag.create("  ") is None
-
-
-def test_rules_never_apply_to_nonexistant_media(client):
-    class Empty:
-        def get_medium(self, medium_id):
-            return None
-
-    with client.app_under_test.test_request_context() as context:
-        context.g.spindex = Empty()
-
-        assert not HasRating("q").applies_to(1234567)
-        assert not HasAnyTagsIn("nonexistantTag").applies_to(1234567)
 
 
 def test_thumbnailing_weird_mime_type_throws():

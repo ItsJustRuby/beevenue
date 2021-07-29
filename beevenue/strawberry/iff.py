@@ -1,6 +1,4 @@
-from typing import Optional, List
-
-from flask import g
+from beevenue.types import TinyMediumDocument
 
 from .common import Iff
 
@@ -8,12 +6,7 @@ from .common import Iff
 class All(Iff):
     """Select all media."""
 
-    def get_medium_ids(
-        self, filtering_medium_ids: Optional[List[int]] = None
-    ) -> List[int]:
-        return [m.medium_id for m in g.spindex.all()]
-
-    def applies_to(self, medium_id: int) -> bool:
+    def applies_to(self, _: TinyMediumDocument) -> bool:
         return True
 
     def pprint_if(self) -> str:

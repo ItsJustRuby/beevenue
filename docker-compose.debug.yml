@@ -1,4 +1,8 @@
 version: "3"
 services:
+  nginx:
+    build:
+      args:
+        NGINX_CONF: "beevenue.dev.conf"
   app:
-    command: sh script/debug_server.sh
+    command: sh script/release_server.sh --reload
