@@ -31,6 +31,13 @@ def test_cannot_crash_search_with_invalid_pagination(client, asUser):
     assert res.status_code != 500
 
 
+def test_returns_last_page_if_requested_page_number_too_high(client, asUser):
+    res = _when_searching(client, "A", page_number=69, page_size=10)
+    assert res.status_code == 200
+    assert res.get_json()["pageNumber"] != 69
+    assert res.get_json()["pageNumber"] == res.get_json()["pageCount"]
+
+
 def test_search_succeeds_on_unparseable_term(client, asUser):
     res = _when_searching(client, "__foo__?")
     assert res.status_code == 200

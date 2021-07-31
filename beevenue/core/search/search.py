@@ -100,12 +100,14 @@ def _paginate(ids: List[TItem]) -> Pagination[TItem]:
             items=[], page_count=1, page_number=page_number, page_size=page_size
         )
 
-    skip = (page_number - 1) * page_size
-
     page_count = len(ids) // page_size
     if (len(ids) % page_size) != 0:
         page_count += 1
 
+    # Be nice. If the client skips too far ahead,
+    # they get the last page instead.
+    page_number = min(page_number, page_count)
+    skip = (page_number - 1) * page_size
     paginated_ids = ids[skip : skip + page_size]
 
     return Pagination(
