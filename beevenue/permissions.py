@@ -80,12 +80,12 @@ def _can_see_spindex_medium(
 
 
 def _can_see_medium(medium_id: int) -> Permission:
-    return _can_see_spindex_medium(g.spindex.get_tiny(medium_id))
+    return _can_see_spindex_medium(g.fast.get_tiny(medium_id))
 
 
 def _can_see_full_path(full_path: str) -> Permission:
     medium_hash = str(Path(full_path).with_suffix(""))
-    maybe_rating = g.spindex.get_rating_by_hash(medium_hash)
+    maybe_rating = g.fast.get_rating_by_hash(medium_hash)
     return _can_see_rating(maybe_rating)
 
 

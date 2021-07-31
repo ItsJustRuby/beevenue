@@ -74,7 +74,7 @@ def pick_thumbnail(  # type: ignore
 @bp.route("/thumbs/<int:medium_id>")
 @permissions.get_medium
 def get_magic_thumb(medium_id: int):  # type: ignore
-    medium = g.spindex.get_medium(medium_id)
+    medium = g.fast.get_medium(medium_id)
     if not medium:
         return "", 404
 

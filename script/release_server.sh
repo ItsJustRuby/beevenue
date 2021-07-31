@@ -1,7 +1,7 @@
 #!/bin/env sh
 
 # Run migrations (if necessary)
-env BEEVENUE_SKIP_SPINDEX=1 /bin/sh ./script/flask.sh db upgrade
+env /bin/sh ./script/flask.sh db upgrade
 
 env /bin/sh ./script/flask.sh warmup
 

@@ -7,7 +7,7 @@ from werkzeug.datastructures import FileStorage
 from beevenue.extensions import EXTENSIONS
 from . import thumbnails
 from ..models import Medium
-from ..signals import medium_updated
+from .. import signals
 from .file_upload import upload_precheck, upload_file, UploadFailure
 from .media import delete_medium_files
 
@@ -63,5 +63,5 @@ def replace_medium(
     # Delete old file, thumbs
     delete_medium_files(old_hash, old_extension)
 
-    medium_updated.send(medium_id)
+    signals.medium_file_replaced.send((old_hash, medium_id))
     return None

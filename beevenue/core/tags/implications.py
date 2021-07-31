@@ -7,8 +7,8 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.query import Query
 
 from ...models import Tag, TagImplication
-from ...signals import implication_added, implication_removed
-from .delete import delete_orphans
+from ... import signals
+from . import delete_orphans
 
 
 def _identify_implication_tags(
@@ -109,7 +109,7 @@ def add_implication(implying: str, implied: str) -> Optional[str]:
 
     implying_tag.implied_by_this.append(implied_tag)
     g.db.commit()
-    implication_added.send(
+    signals.implication_added.send(
         (
             implying,
             implied,
@@ -138,7 +138,7 @@ def remove_implication(implying: str, implied: str) -> None:
     implying_tag.implied_by_this.remove(implied_tag)
     g.db.commit()
     delete_orphans()
-    implication_removed.send(
+    signals.implication_removed.send(
         (
             implying,
             implied,

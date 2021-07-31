@@ -42,7 +42,7 @@ def _current_rules() -> List[Rule]:
 
 
 def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
-    all_media = g.spindex.get_all_tiny()
+    all_media = g.fast.get_all_tiny()
 
     sorted_ratings = ["s", "q", "e", "u"]
     semirandom_sorting_index = {
@@ -110,7 +110,7 @@ def validate_rules():  # type: ignore
 @bp.route("/tags/missing/<int:medium_id>", methods=["GET", "OPTION"])
 @permissions.get_medium
 def get_missing_tags_for_post(medium_id: int):  # type: ignore
-    medium = g.spindex.get_tiny(medium_id)
+    medium = g.fast.get_tiny(medium_id)
     broken_rules = [r for r in _current_rules() if r.is_violated_by(medium)]
     return _pretty_print({medium_id: broken_rules})
 

@@ -1,3 +1,4 @@
+from beevenue.notifications import new_thumbnail
 from io import BytesIO
 
 import pytest
@@ -32,6 +33,13 @@ def test_medium_replace_fails_on_nonexistant_medium(client, asAdmin, nsfw):
 def test_medium_replace_can_succeed(client, asAdmin, nsfw, local_file):
     """Replace the file of a medium, checking if the hash changes from the old to the new one."""
 
+    res = client.get("/search?pageNumber=1&pageSize=10&q=rating:e")
+    search_results = res.get_json()
+    assert len(search_results["items"]) == 1
+    print(search_results["items"][0])
+
+    old_thumbnail = search_results["items"][0]["tinyThumbnail"]
+
     with open(f"test/resources/{local_file}", "rb") as f:
         contents = f.read()
 
@@ -45,6 +53,17 @@ def test_medium_replace_can_succeed(client, asAdmin, nsfw, local_file):
     assert res.status_code == 200
 
     _assert_hash_is_now(client, lambda h: h == expected_hash)
+
+    res = client.get("/search?pageNumber=1&pageSize=10&q=rating:e")
+    search_results = res.get_json()
+    assert len(search_results["items"]) == 1
+
+    new_thumbnail = search_results["items"][0]["tinyThumbnail"]
+
+    print(search_results["items"][0])
+    print(old_thumbnail)
+    print(new_thumbnail)
+    assert new_thumbnail != old_thumbnail
 
 
 def test_medium_replace_can_fail_due_to_invalid_mime_type(

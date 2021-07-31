@@ -2,17 +2,17 @@ from typing import Iterable, List, Optional, Set, Tuple
 
 from flask import g
 from sqlalchemy import select, delete
+from sqlalchemy.orm import joinedload
 
 from beevenue.flask import request
 
 from . import tags
 from ..types import TinyMediumDocument
 from ..models import MediumTag, Medium, Tag, MediumTagAbsence
-from ..signals import medium_updated
+from .. import signals
 from .detail import MediumDetail
 from .media import similar_media
-from .tags import ValidTagName
-from .tags.delete import delete_orphans
+from .tags import ValidTagName, delete_orphans
 from .tags.new import create
 
 
@@ -142,12 +142,19 @@ def _reject_implication_overlap(
     medium: Medium, new_absent_tags: Set[str]
 ) -> bool:
     # Figure out if we want to mark a tag as both absent and implied. Reject.
-    spindex_medium = g.spindex.get_medium(medium.id)
 
-    if new_absent_tags & spindex_medium.searchable_tag_names:
-        return True
+    medium = (
+        g.db.query(Medium)
+        .filter(Medium.id == medium.id)
+        .options(joinedload(Medium.tags).joinedload(Tag.implied_by_this))
+    ).first()
 
-    return False
+    searchable_tag_names = set()
+    for tag in medium.tags:
+        searchable_tag_names.add(tag.tag)
+        searchable_tag_names |= {t.tag for t in tag.implied_by_this}
+
+    return bool(new_absent_tags & searchable_tag_names)
 
 
 def _update_tags_and_absents(
@@ -160,7 +167,6 @@ def _update_tags_and_absents(
         return
 
     update_tags(medium, new_tag_set)
-    medium_updated.send(medium.id)
 
     if _reject_implication_overlap(medium, new_absent_tag_set):
         return
@@ -182,9 +188,9 @@ def update_medium(
     update_rating(maybe_medium, new_rating)
     _update_tags_and_absents(maybe_medium, set(new_tags), set(new_absent_tags))
 
-    medium_updated.send(maybe_medium.id)
+    signals.medium_metadata_changed.send(maybe_medium)
 
-    result: TinyMediumDocument = g.spindex.get_medium(  # type: ignore
+    result: TinyMediumDocument = g.fast.get_medium(  # type: ignore
         maybe_medium.id
     )
 

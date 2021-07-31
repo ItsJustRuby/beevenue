@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 from flask import g
 
 from ...models import Tag, Medium, TagAlias
-from ...signals import medium_updated
+from ... import signals
 from . import ValidTagName, validate
 from .load import load
 
@@ -37,9 +37,10 @@ def _add_all(
 
     g.db.commit()
 
-    for medium in media:
-        medium_updated.send(medium.id)
-
+    # In this method, we have either added present or absent tags
+    # to these media, never created them. So overall, this simple signal
+    # is the most efficient and still safe to use.
+    signals.media_updated.send(*media)
     return added_count
 
 

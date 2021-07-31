@@ -8,11 +8,11 @@ from flask import current_app, g
 from sqlalchemy import select, delete as sql_delete
 from sqlalchemy.orm import joinedload
 
-from beevenue import paths
+from beevenue import paths, signals
+from beevenue.core.tags import delete_orphans
 from beevenue.flask import BeevenueContext, EXTENSIONS
 
 from ..models import Medium, MediumTag, MediumTagAbsence
-from ..signals import medium_deleted
 from .detail import MediumDetail
 from .similar import similar_media
 
@@ -37,7 +37,7 @@ def _get_metadata_bytes(medium: Medium) -> bytes:
 def get(
     context: BeevenueContext, medium_id: int
 ) -> Tuple[int, Optional[MediumDetail]]:
-    maybe_medium = g.spindex.get_medium(medium_id)
+    maybe_medium = g.fast.get_medium(medium_id)
 
     if not maybe_medium:
         return 404, None
@@ -95,8 +95,14 @@ def _delete(medium: Medium) -> None:
     )
     session.commit()
 
-    medium_deleted.send(medium_id)
+    delete_orphans()
     delete_medium_files(current_hash, extension)
+    signals.medium_deleted.send(
+        (
+            medium_id,
+            current_hash,
+        )
+    )
 
 
 def delete_medium_files(medium_hash: str, extension: str) -> None:

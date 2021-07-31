@@ -9,6 +9,7 @@ SENTRY_DSN = "https://examplePublicKey@o0.ingest.sentry.io/0"
 SENTRY_TRACES_SAMPLE_RATE = 0.0
 SENTRY_ENVIRONMENT = "testing"
 
+BEEVENUE_DO_WARMUP = True
 BEEVENUE_STORAGE = "./test"
 
 BEEVENUE_ALLOWED_CORS_ORIGINS = ["http://localhost:*"]

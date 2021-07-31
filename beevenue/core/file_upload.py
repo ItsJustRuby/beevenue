@@ -8,12 +8,11 @@ from flask import g
 from sqlalchemy import select
 import magic
 
-from beevenue import paths
+from beevenue import paths, signals
 from beevenue.extensions import EXTENSIONS
 from beevenue.io import HelperBytesIO
 
 from ..models import Medium
-from ..signals import medium_added
 from .medium_update import update_rating, update_tags
 from . import thumbnails
 
@@ -175,5 +174,5 @@ def create_medium_from_upload(
         }
 
     session.commit()
-    medium_added.send(medium.id)
+    signals.medium_added.send(medium)
     return medium.id, None

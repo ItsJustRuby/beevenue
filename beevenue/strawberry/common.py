@@ -93,7 +93,7 @@ class HasAnyTagsLike(HasAnyTags, IffAndThen):
     def _load_tag_names(self) -> None:
         tag_names = set()
 
-        all_tag_names = set(g.spindex.get_all_searchable_tag_names())
+        all_tag_names = set(g.fast.get_all_searchable_tag_names())
 
         for regex in self.regexes:
             compiled_regex = re.compile(f"^{regex}$")

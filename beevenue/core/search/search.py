@@ -37,7 +37,7 @@ def run(search_term_list: List[str]) -> Pagination[MediumDocument]:
 
 def _run_unpaginated(search_terms: Set[SearchTerm]) -> BatchSearchResults:
     medium_ids = _search(search_terms)
-    return BatchSearchResults(list(g.spindex.get_many(medium_ids)))
+    return BatchSearchResults(list(g.fast.get_many(medium_ids)))
 
 
 def _run_paginated(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
@@ -68,7 +68,7 @@ def _censor(search_terms: Set[SearchTerm]) -> Set[SearchTerm]:
 def _search(search_terms: Set[SearchTerm]) -> Set[int]:
     search_terms = _censor(search_terms)
 
-    all_media = g.spindex.get_all_tiny()
+    all_media = g.fast.get_all_tiny()
     result = set()
 
     for medium in all_media:
@@ -109,7 +109,7 @@ def _paginate(ids: List[TItem]) -> Pagination[TItem]:
     paginated_ids = ids[skip : skip + page_size]
 
     return Pagination(
-        items=g.spindex.get_many(paginated_ids),
+        items=g.fast.get_many(paginated_ids),
         page_count=page_count,
         page_number=page_number,
         page_size=page_size,

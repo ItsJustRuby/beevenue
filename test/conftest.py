@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import shutil
@@ -93,7 +94,7 @@ def _client():
 
         _run_testing_sql(temp_nice_path)
 
-    app = get_application(extra_config, fill_db, True)
+    app = get_application(extra_config, fill_db)
 
     if not RAN_ONCE:
         _ensure_folder("media")
@@ -143,8 +144,9 @@ def _client():
 
 
 @pytest.fixture
-def client():
+def client(caplog):
     """Return the current testing client."""
+    caplog.set_level(logging.DEBUG)
     for c in _client():
         yield c
 

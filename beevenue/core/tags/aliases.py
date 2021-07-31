@@ -4,9 +4,9 @@ from flask import g
 from sqlalchemy import select
 from sqlalchemy.sql.expression import func
 
-from .delete import delete_orphans
+from . import delete_orphans
 from ...models import Tag, TagAlias
-from ...signals import alias_added, alias_removed
+from ... import signals
 
 
 def add_alias(current_name: str, new_alias: str) -> Optional[str]:
@@ -47,7 +47,7 @@ def add_alias(current_name: str, new_alias: str) -> Optional[str]:
     alias = TagAlias(old_tag.id, new_alias)
     session.add(alias)
     session.commit()
-    alias_added.send(
+    signals.alias_added.send(
         (
             old_tag.tag,
             new_alias,
@@ -80,5 +80,5 @@ def remove_alias(name: str, alias: str) -> None:
     session.delete(current_aliases[0])
     session.commit()
     delete_orphans()
-    alias_removed.send(alias)
+    signals.alias_removed.send(alias)
     return None

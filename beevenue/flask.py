@@ -2,13 +2,12 @@ from pathlib import Path
 from typing import Any, List, Optional
 
 from flask import Response
-from flask import current_app, Flask, Request
+from flask import current_app, Request
 from flask import request as flask_request
 
 from .convert import decorate_response, try_convert_model
 from .extensions import EXTENSIONS
-from .spindex.spindex import Spindex
-from .types import MediumDocument
+from .types import BeevenueFlask, MediumDocument
 
 
 class BeevenueContext:
@@ -17,16 +16,6 @@ class BeevenueContext:
     def __init__(self, is_sfw: bool, user_role: Optional[str]):
         self.is_sfw = is_sfw
         self.user_role = user_role
-
-
-class BeevenueRequest(Request):
-    """Customized request class."""
-
-    beevenue_context: BeevenueContext
-    spindex: Spindex
-
-
-request: BeevenueRequest = flask_request  # type: ignore
 
 
 class BeevenueResponse(Response):
@@ -63,7 +52,16 @@ class BeevenueResponse(Response):
         self.sendfile_header = str(path)
 
 
-class BeevenueFlask(Flask):
+class BeevenueRequest(Request):
+    """Customized request class."""
+
+    beevenue_context: BeevenueContext
+
+
+request: BeevenueRequest = flask_request  # type: ignore
+
+
+class BeevenueFlaskImpl(BeevenueFlask):
     """Custom implementation of Flask application """
 
     request_class = BeevenueRequest
@@ -72,7 +70,7 @@ class BeevenueFlask(Flask):
     def __init__(
         self, name: str, hostname: str, port: int, *args: Any, **kwargs: Any
     ) -> None:
-        Flask.__init__(self, name, *args, **kwargs)
+        BeevenueFlask.__init__(self, name, *args, **kwargs)
         self.hostname = hostname
         self.port = port
 

@@ -38,7 +38,7 @@ def _load_media_counts() -> CountsType:
     i.e. d["foo"] = {"q": 2, "e": 1, "s": 0, "u": 0}
     """
 
-    all_media = g.spindex.get_all_tiny()
+    all_media = g.fast.get_all_tiny()
     counts: CountsType = defaultdict(lambda: defaultdict(int))
 
     for medium in all_media:

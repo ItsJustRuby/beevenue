@@ -4,6 +4,12 @@ import subprocess
 import pytest
 
 
+def _current_newest_medium_id(client):
+    res = client.get("/media?pageNumber=1&pageSize=10")
+    assert res.status_code == 200
+    return res.get_json()["items"][0]["id"]
+
+
 def test_cannot_upload_medium_without_login(client):
     res = client.post("/medium")
     assert res.status_code == 401
@@ -21,13 +27,21 @@ def test_uploading_medium_as_admin_requires_some_files_in_request(
     assert res.status_code == 400
 
 
-def test_uploading_medium_as_admin_succeeds(client, asAdmin):
+def test_uploading_medium_as_admin_succeeds(client, asAdmin, nsfw):
+    previously_newest_medium_id = _current_newest_medium_id(client)
+    print(previously_newest_medium_id)
+
     with open("test/resources/placeholder.jpg", "rb") as f:
         contents = f.read()
     res = client.post(
         "/medium", data={"file": (BytesIO(contents), "example.foo")}
     )
     assert res.status_code == 200
+
+    currently_newest_medium_id = _current_newest_medium_id(client)
+
+    print(currently_newest_medium_id)
+    assert currently_newest_medium_id > previously_newest_medium_id
 
 
 def test_uploading_same_medium_twice_fails(client, asAdmin):

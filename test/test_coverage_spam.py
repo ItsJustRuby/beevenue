@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from beevenue.beevenue import get_application
 from beevenue.core import ffmpeg
 from beevenue.core.search import complex, simple
 from beevenue.core.search.pagination import Pagination
+from beevenue.fast.nope import NotACache
 from beevenue.models import Tag
 from beevenue.permissions import _CanSeeMediumWithRatingNeed
-from beevenue.documents import SpindexedMedium, TinySpindexedMedium
+from beevenue.documents import IndexedMedium, TinyIndexedMedium
 
 
 def _assert_equally_hashed(x1, x2):
@@ -29,7 +29,7 @@ def test_permission_need_internals():
 
 
 def test_spindexed_medium_internals():
-    medium = SpindexedMedium(
+    medium = IndexedMedium(
         1,
         "1.0",
         "someHash",
@@ -41,7 +41,7 @@ def test_spindexed_medium_internals():
         frozenset(),
     )
 
-    medium_with_same_id = SpindexedMedium(
+    medium_with_same_id = IndexedMedium(
         1,
         "2.0",
         "someOtherHash",
@@ -59,7 +59,7 @@ def test_spindexed_medium_internals():
 
 
 def test_tiny_spindexed_medium_internals():
-    medium = TinySpindexedMedium(
+    medium = TinyIndexedMedium(
         1,
         "q",
         frozenset(),
@@ -67,7 +67,7 @@ def test_tiny_spindexed_medium_internals():
         frozenset(),
     )
 
-    medium_with_same_id = TinySpindexedMedium(
+    medium_with_same_id = TinyIndexedMedium(
         1,
         "e",
         frozenset(),
@@ -87,20 +87,6 @@ def test_tag_cannot_be_created_empty(client):
 def test_thumbnailing_weird_mime_type_throws():
     with pytest.raises(Exception):
         ffmpeg.thumbnails("", Path("./"), "application/weird")
-
-
-def test_app_can_initialize_without_spindex():
-    old_env = None
-    if "BEEVENUE_SKIP_SPINDEX" in os.environ:
-        old_env = os.environ["BEEVENUE_SKIP_SPINDEX"]
-
-    os.environ["BEEVENUE_SKIP_SPINDEX"] = "yep"
-
-    get_application()
-    if old_env is None:
-        del os.environ["BEEVENUE_SKIP_SPINDEX"]
-    else:
-        os.environ["BEEVENUE_SKIP_SPINDEX"] = old_env
 
 
 def test_counting_search_term_internals():
@@ -130,3 +116,8 @@ def test_negative_search_term_internals():
 def test_pagination_internals():
     pagination = Pagination([], 1, 1, 10)
     assert len(pagination.__repr__()) > 0
+
+
+def test_notacache_internals():
+    not_a_cache = NotACache()
+    assert not_a_cache.delete([]) == 0

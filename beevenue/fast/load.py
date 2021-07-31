@@ -1,43 +1,24 @@
 from collections import defaultdict, deque
-from typing import Dict, Iterable, List, Sequence, Set, Tuple
+from typing import List, Sequence, Set
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from flask import g
 
-from beevenue.documents import SpindexedMedium
+from beevenue.documents import IndexedMedium
 from beevenue.models import Medium, Tag, TagAlias, TagImplication
 from beevenue.types import MediumDocument
 
-
-class _DataSource:
-    def __init__(
-        self,
-        implied_by_this: Dict[int, Set[int]],
-        aliases_by_id: Dict[int, Set[str]],
-        tag_name_by_id: Dict[int, str],
-    ):
-        self.implied_by_this = implied_by_this
-        self.aliases_by_id = aliases_by_id
-        self.tag_name_by_id = tag_name_by_id
-
-    def alias_names(self, tag_ids: Iterable[int]) -> Set[str]:
-        result = set()
-        for tag_id in tag_ids:
-            result |= self.aliases_by_id[tag_id]
-        return result
-
-    def implied(self, tag_ids: Iterable[int]) -> Tuple[Set[int], Set[str]]:
-        implied_ids = set()
-        for tag_id in tag_ids:
-            implied_ids |= self.implied_by_this[tag_id]
-
-        implied_names = {self.tag_name_by_id[i] for i in implied_ids}
-
-        return implied_ids, implied_names
+from .data_source import (
+    AbstractDataSource,
+    FullLoadDataSource,
+    SingleLoadDataSource,
+)
 
 
-def _non_innate_tags(data_source: _DataSource, medium: Medium) -> Set[str]:
+def _non_innate_tags(
+    data_source: AbstractDataSource, medium: Medium
+) -> Set[str]:
     extra: Set[str] = set()
 
     queue: deque = deque()
@@ -60,8 +41,8 @@ def _non_innate_tags(data_source: _DataSource, medium: Medium) -> Set[str]:
 
 
 def _create_spindexed_medium(
-    data_source: _DataSource, medium: Medium
-) -> SpindexedMedium:
+    data_source: AbstractDataSource, medium: Medium
+) -> IndexedMedium:
     # First, get innate tags. These will never change.
     innate_tag_names = {t.tag for t in medium.tags}
 
@@ -73,7 +54,7 @@ def _create_spindexed_medium(
 
     absent_tag_names = {t.tag for t in medium.absent_tags}
 
-    return SpindexedMedium(
+    return IndexedMedium(
         medium.id,
         str(medium.aspect_ratio),
         medium.hash,
@@ -84,6 +65,17 @@ def _create_spindexed_medium(
         frozenset(searchable_tag_names),
         frozenset(absent_tag_names),
     )
+
+
+def single_load(medium_id: int) -> MediumDocument:
+    matching_medium = (
+        g.db.query(Medium)
+        .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
+        .filter_by(id=medium_id)
+        .first()
+    )
+
+    return _create_spindexed_medium(SingleLoadDataSource(), matching_medium)
 
 
 def full_load() -> Sequence[MediumDocument]:
@@ -112,7 +104,9 @@ def full_load() -> Sequence[MediumDocument]:
     for alias in all_aliases:
         aliases_by_id[alias.tag_id].add(alias.alias)
 
-    data_source = _DataSource(implied_by_this, aliases_by_id, tag_name_by_id)
+    data_source = FullLoadDataSource(
+        implied_by_this, aliases_by_id, tag_name_by_id
+    )
 
     media_to_cache = [
         _create_spindexed_medium(data_source, m) for m in all_media

@@ -4,7 +4,7 @@ from sqlalchemy import select, update as sql_update
 from sqlalchemy.orm import joinedload
 from flask import g
 
-from ...signals import tag_renamed
+from ... import signals
 from ...models import Tag, MediumTag
 
 
@@ -24,7 +24,7 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
     if len(new_tags) < 1:
         # New tag doesn't exist yet. We can simply rename "old_tag".
         old_tag.tag = new_name
-        tag_renamed.send(
+        signals.tag_renamed.send(
             (
                 old_name,
                 new_name,
@@ -43,7 +43,7 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
         .values(tag_id=new_tag.id)
     )
 
-    tag_renamed.send(
+    signals.tag_renamed.send(
         (
             old_name,
             new_name,

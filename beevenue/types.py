@@ -1,5 +1,17 @@
 from abc import ABC
-from typing import FrozenSet
+from typing import Any, FrozenSet
+
+from flask.app import Flask
+
+
+class BeevenueFlask(Flask):
+    """Typing hint for main application object."""
+
+    hostname: str
+    port: int
+
+    def __init__(self, name: str, *args: Any, **kwargs: Any) -> None:
+        Flask.__init__(self, name, *args, **kwargs)
 
 
 class MediumDocument(ABC):

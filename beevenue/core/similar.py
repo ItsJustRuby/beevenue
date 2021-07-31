@@ -17,7 +17,7 @@ def _find_candidates(
         candidates = set()
 
         # Maybe add a reverse index (tag => media) so this query is faster
-        for medium in g.spindex.get_all_tiny():
+        for medium in g.fast.get_all_tiny():
             if medium.medium_id == medium_id:
                 continue
 
@@ -86,7 +86,7 @@ def similar_media(
         # descendingly (most similar first)
         similar_media_ids.reverse()
 
-        media: List[TinyMediumDocument] = g.spindex.get_many_tiny(
+        media: List[TinyMediumDocument] = g.fast.get_many_tiny(
             similar_media_ids
         )
         return media

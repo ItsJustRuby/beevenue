@@ -1,7 +1,7 @@
 """Application factory. Lots of initial setup is performed here."""
 
+from beevenue.types import BeevenueFlask
 import logging
-import os
 from typing import Any, Callable
 
 from flask_compress import Compress
@@ -18,13 +18,12 @@ from .cli import init_cli
 from .core import batch_routes, stats_routes, media_routes, routes, tag_routes
 from .db import db
 from .db import init_app as db_init_app
-from .flask import BeevenueFlask
+from .flask import BeevenueFlaskImpl
 from .init import init_app as context_init_app
 from .login_manager import login_manager
 from .principal import principal
-from .spindex.init import init_app as spindex_init_app
+from .fast import init_app as fast_init_app
 from .strawberry.init import init_app as strawberry_init_app
-from .cache import cache
 
 
 def _nop(_: Any) -> None:
@@ -34,11 +33,11 @@ def _nop(_: Any) -> None:
 def get_application(
     extra_config: Callable[[BeevenueFlask], None] = _nop,
     fill_db: Callable[[SQLAlchemy], None] = _nop,
-    do_warmup: bool = False,
 ) -> BeevenueFlask:
     """Construct and return uWSGI application object."""
+    logging.basicConfig(level=logging.DEBUG)
 
-    application = BeevenueFlask("beevenue-main", "0.0.0.0", 7000)
+    application = BeevenueFlaskImpl("beevenue-main", "0.0.0.0", 7000)
     application.config.from_envvar("BEEVENUE_CONFIG_FILE")
     extra_config(application)
 
@@ -80,15 +79,7 @@ def get_application(
         # but before filling Spindex from DB.
         fill_db(db)
 
-        if "BEEVENUE_SKIP_SPINDEX" in os.environ:
-            logging.info("Skipping Spindex initialization")
-        else:
-            spindex_init_app(application)
-
-        # Only used for testing - in production, the cache is warmed up
-        # via CLI before starting the webserver!
-        if do_warmup:
-            cache.fill()
+        fast_init_app(application)
 
     init_cli(application)
     auth_init_app()

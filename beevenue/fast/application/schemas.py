@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+import os
+from typing import Any, Dict, List
 
 import capnp  # type: ignore
 
-from beevenue.documents import SpindexedMedium, TinySpindexedMedium
+from beevenue.documents import IndexedMedium, TinyIndexedMedium
 from beevenue.types import MediumDocument, TinyMediumDocument
+
+from ..types import CacheEntityKind
 
 
 def _camel_case(string: str) -> str:
@@ -12,18 +15,20 @@ def _camel_case(string: str) -> str:
     return "".join([parts[0], *[p.title() for p in parts[1:]]])
 
 
+def _path(filename: str) -> str:
+    return os.path.join(os.path.dirname(__file__), filename)
+
+
 MDT_SCHEMA = capnp.load(  # pylint: disable=no-member
-    "beevenue/cache/medium_document_tiny.capnp"
+    _path("medium_document_tiny.capnp")
 )
 MDTA_SCHEMA = capnp.load(  # pylint: disable=no-member
-    "beevenue/cache/medium_document_tiny_all.capnp"
+    _path("medium_document_tiny_all.capnp")
 )
 MD_SCHEMA = capnp.load(  # pylint: disable=no-member
-    "beevenue/cache/medium_document.capnp"
+    _path("medium_document.capnp")
 )
-LISTS_SCHEMA = capnp.load(  # pylint: disable=no-member
-    "beevenue/cache/lists.capnp"
-)
+LISTS_SCHEMA = capnp.load(_path("lists.capnp"))  # pylint: disable=no-member
 
 
 class Schema(ABC):
@@ -114,7 +119,7 @@ class FullMediumDocumentSchema(CapnpSchema):
         return MD_SCHEMA.MediumDocument
 
     def construct_object(self, doc: Any) -> MediumDocument:
-        return SpindexedMedium(
+        return IndexedMedium(
             doc.mediumId,
             doc.aspectRatio,
             doc.mediumHash,
@@ -146,7 +151,7 @@ class TinyMediumDocumentSchema(CapnpSchema):
         return MDT_SCHEMA.MediumDocumentTiny
 
     def construct_object(self, doc: Any) -> TinyMediumDocument:
-        return TinySpindexedMedium(
+        return TinyIndexedMedium(
             doc.mediumId,
             doc.rating,
             frozenset(doc.innateTagNames),
@@ -209,10 +214,18 @@ class AsciiStringSchema(Schema):
         return raw_bytes.decode("ascii")
 
 
-FULL_MEDIUM_DOCUMENT_SCHEMA = FullMediumDocumentSchema()
-TINY_MEDIUM_DOCUMENT_SCHEMA = TinyMediumDocumentSchema()
-RATING_BY_HASH_SCHEMA = AsciiStringSchema()
+_FULL_MEDIUM_DOCUMENT_SCHEMA = FullMediumDocumentSchema()
+_TINY_MEDIUM_DOCUMENT_SCHEMA = TinyMediumDocumentSchema()
+_RATING_BY_HASH_SCHEMA = AsciiStringSchema()
 
-ALL_TINY_MEDIUM_DOCUMENT_SCHEMA = AllMetaSchema(TINY_MEDIUM_DOCUMENT_SCHEMA)
+_ALL_TINY_MEDIUM_DOCUMENT_SCHEMA = AllMetaSchema(_TINY_MEDIUM_DOCUMENT_SCHEMA)
 
-STRING_LIST_SCHEMA = StringListSchema()
+_STRING_LIST_SCHEMA = StringListSchema()
+
+SCHEMAS: Dict[CacheEntityKind, Schema] = {
+    CacheEntityKind.MEDIUM_DOCUMENT: _FULL_MEDIUM_DOCUMENT_SCHEMA,
+    CacheEntityKind.MEDIUM_DOCUMENT_TINY: _TINY_MEDIUM_DOCUMENT_SCHEMA,
+    CacheEntityKind.MEDIUM_DOCUMENT_TINY_ALL: _ALL_TINY_MEDIUM_DOCUMENT_SCHEMA,
+    CacheEntityKind.RATING_BY_HASH: _RATING_BY_HASH_SCHEMA,
+    CacheEntityKind.SEARCHABLE_TAGS: _STRING_LIST_SCHEMA,
+}

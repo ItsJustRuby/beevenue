@@ -12,7 +12,6 @@ from beevenue.extensions import EXTENSIONS
 
 from . import ffmpeg
 from ..models import Medium
-from ..signals import medium_updated
 from .interface import ThumbnailingResult
 
 
@@ -100,4 +99,3 @@ def _generate_tiny(medium: Medium) -> None:
 
     medium.tiny_thumbnail = out_bytes
     g.db.commit()
-    medium_updated.send(medium.id)
