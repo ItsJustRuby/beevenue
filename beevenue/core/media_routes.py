@@ -134,14 +134,12 @@ def replace_medium_file(medium_id: int):  # type: ignore
 def get_backup_sh():  # type: ignore
     all_media_ids = media.get_all_ids()
 
-    base_path = request.url_root
     session_cookie = request.cookies["session"]
 
     response = make_response(
         render_template(
             "backup.sh.template",
-            medium_ids=all_media_ids,
-            base_url=base_path,
+            medium_ids=" ".join([str(i) for i in all_media_ids]),
             session_cookie=session_cookie,
         )
     )
