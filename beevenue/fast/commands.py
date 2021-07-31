@@ -159,17 +159,14 @@ class RefreshMediumCommand(Command[RefreshMediumAggregator]):
                 # This cache doesn't care about these documents
                 return agg
 
-            to_add = set(agg.tinies)
             new_tinies = []
-            for tiny in modify.value:
-                for refreshed in agg.tinies:
-                    if tiny.medium_id == refreshed.medium_id:
-                        new_tinies.append(refreshed)
-                        to_add.remove(refreshed)
-                    else:
-                        new_tinies.append(tiny)
 
-            modify.value = new_tinies + list(to_add)
+            refreshed_by_id = {r.medium_id: r for r in agg.tinies}
+
+            for tiny in modify.value:
+                new_tinies.append(refreshed_by_id.pop(tiny.medium_id, tiny))
+
+            modify.value = new_tinies + list(refreshed_by_id.values())
 
         return agg
 
