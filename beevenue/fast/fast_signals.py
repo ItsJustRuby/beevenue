@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 from flask import g
 
@@ -31,7 +31,7 @@ def _delete_medium(msg: Tuple[int, str]) -> None:
     g.fast.run(commands.DeleteMediumCommand(medium_id, medium_hash))
 
 
-def _add_medium(*media: Medium) -> None:
+def _add_media(media: List[Medium]) -> None:
     params = [
         (
             m.id,
@@ -40,6 +40,19 @@ def _add_medium(*media: Medium) -> None:
         for m in media
     ]
     g.fast.run(commands.RefreshMediumCommand(params))
+
+
+def _add_medium(medium: Medium) -> None:
+    g.fast.run(
+        commands.RefreshMediumCommand(
+            [
+                (
+                    medium.id,
+                    medium.hash,
+                )
+            ]
+        )
+    )
 
 
 def _refresh_metadata(medium: Medium) -> None:
@@ -72,7 +85,7 @@ def setup_signals() -> None:
     signals.medium_file_replaced.connect(_medium_file_replaced)
     signals.medium_added.connect(_add_medium)
     signals.medium_deleted.connect(_delete_medium)
-    signals.media_updated.connect(_add_medium)
+    signals.media_updated.connect(_add_media)
 
     # This requires the most finesse, so it uses multiple successive commands.
     signals.medium_metadata_changed.connect(_refresh_metadata)

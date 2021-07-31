@@ -22,7 +22,7 @@ def test_tag_batch_absent_update(client, asAdmin):
         json={
             "isAbsent": True,
             "tags": ["tobecensoredtoo"],
-            "mediumIds": [1],
+            "mediumIds": [1, 2, 3],
         },
     )
     assert res.status_code == 200

@@ -40,7 +40,7 @@ def _add_all(
     # In this method, we have either added present or absent tags
     # to these media, never created them. So overall, this simple signal
     # is the most efficient and still safe to use.
-    signals.media_updated.send(*media)
+    signals.media_updated.send(media)
     return added_count
 
 
