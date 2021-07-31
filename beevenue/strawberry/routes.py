@@ -3,14 +3,14 @@ from typing import Dict, List, Optional, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
 from flask.json import dumps
-from sentry_sdk import start_span
 
 from beevenue.flask import request
 from beevenue.types import TinyMediumDocument
 
 from .. import permissions
-from .json import decode_rules_json, decode_rules_list
+from .json import decode_rules_list
 from .rule import Rule
+from . import get_rules
 
 bp = Blueprint("strawberry", __name__)
 
@@ -30,17 +30,6 @@ def _pretty_print(rule_breaks: Dict[int, List[Rule]]) -> Dict[int, List[str]]:
     return json_helper
 
 
-def _current_rules() -> List[Rule]:
-    with start_span(op="http", description="Loading current rules"):
-        rules_file_path = current_app.config["BEEVENUE_RULES_FILE"]
-        with open(rules_file_path, "r") as rules_file:
-            rules_file_json = rules_file.read()
-
-        rules_file_json = rules_file_json or "[]"
-
-        return decode_rules_json(rules_file_json)
-
-
 def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
     all_media = g.fast.get_all_tiny()
 
@@ -55,7 +44,7 @@ def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
 
     all_media.sort(key=shuffler)
 
-    rules = _current_rules()
+    rules = get_rules()
     random.shuffle(rules)
 
     for medium in all_media:
@@ -70,13 +59,13 @@ def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
 @bp.route("/rules/rules.json")
 @permissions.is_owner
 def get_rules_as_json():  # type: ignore
-    return jsonify(_current_rules()), 200
+    return jsonify(get_rules()), 200
 
 
 @bp.route("/rules/<int:rule_index>", methods=["DELETE"])
 @permissions.is_owner
 def remove_rule(rule_index: int):  # type: ignore
-    current_rules = _current_rules()
+    current_rules = get_rules()
     if rule_index < 0 or rule_index > (len(current_rules) - 1):
         return "", 400
 
@@ -111,7 +100,7 @@ def validate_rules():  # type: ignore
 @permissions.get_medium
 def get_missing_tags_for_post(medium_id: int):  # type: ignore
     medium = g.fast.get_tiny(medium_id)
-    broken_rules = [r for r in _current_rules() if r.is_violated_by(medium)]
+    broken_rules = [r for r in get_rules() if r.is_violated_by(medium)]
     return _pretty_print({medium_id: broken_rules})
 
 

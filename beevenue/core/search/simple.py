@@ -1,6 +1,8 @@
 from abc import ABC
+from beevenue.strawberry.rule import Rule
+from beevenue.strawberry import get_rules
 from re import Match
-from typing import NoReturn
+from typing import NoReturn, Optional
 
 from ...types import MediumDocument
 from .base import SearchTerm
@@ -63,6 +65,32 @@ class RatingSearchTerm(SearchTerm):
 
     def applies_to(self, medium: MediumDocument) -> bool:
         return medium.rating == self.rating
+
+
+class RuleSearchTerm(SearchTerm):
+    """Search term like "rule:0". Returns violating media."""
+
+    def __init__(self, rule_index: int):
+        self.rule_index = rule_index
+        self.rule: Optional[Rule] = None
+
+        all_rules = get_rules()
+
+        if rule_index < len(all_rules):
+            self.rule = all_rules[rule_index]
+
+    @classmethod
+    def from_match(cls, match: Match) -> "RuleSearchTerm":
+        rule_index = int(match.group(1))
+        return RuleSearchTerm(rule_index)
+
+    def __repr__(self) -> str:
+        return f"rule:{self.rule_index}"
+
+    def applies_to(self, medium: MediumDocument) -> bool:
+        if self.rule is None:
+            return False
+        return self.rule.is_violated_by(medium)
 
 
 class Negative(SearchTerm):

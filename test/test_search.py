@@ -83,6 +83,17 @@ def test_search_with_only_exact_terms_succeeds(client, asUser):
     assert len(result["items"]) >= 1
 
 
+rule_terms = ["rule:0", "rule:9999"]
+
+
+@pytest.mark.parametrize("q", rule_terms)
+def test_search_with_rule_term_succeeds(client, asUser, q):
+    res = _when_searching(client, q)
+    result = res.get_json()
+    print(result)
+    assert res.status_code == 200
+
+
 identical_group_search_terms = ["utags:1", "utags=1"]
 identical_counting_search_terms = ["tags:2", "tags=2"]
 
