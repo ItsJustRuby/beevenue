@@ -3,7 +3,7 @@ import zipfile
 
 
 def test_get_backup_sh_as_admin(client, asAdmin):
-    res = client.get("/media/backup.sh")
+    res = client.get("/backup.sh")
     assert res.status_code == 200
 
 

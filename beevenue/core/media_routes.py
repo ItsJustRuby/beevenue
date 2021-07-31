@@ -129,7 +129,7 @@ def replace_medium_file(medium_id: int):  # type: ignore
     return notifications.no_such_medium(medium_id), 400
 
 
-@bp.route("/media/backup.sh")
+@bp.route("/backup.sh")
 @permissions.is_owner
 def get_backup_sh():  # type: ignore
     all_media_ids = media.get_all_ids()
