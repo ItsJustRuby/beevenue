@@ -1,29 +1,32 @@
-from typing import List
+from typing import FrozenSet, List, NamedTuple
 
-from ..types import TinyMediumDocument
+from ..types import MediumDocument, TinyMediumDocument
 
 
-class MediumDetail(  # pylint: disable=too-many-instance-attributes
-    TinyMediumDocument
-):
-    """Viewmodel extending MediumDocument.
+class MediumDetail(NamedTuple):
+    """Viewmodel for Medium which holds info about "similar" media as well."""
 
-    Holds info about "similar" media as well."""
-
-    __slots__ = ["similar"]
+    medium_id: int
+    medium_hash: str
+    mime_type: str
+    rating: str
+    innate_tag_names: FrozenSet[str]
+    searchable_tag_names: FrozenSet[str]
+    absent_tag_names: FrozenSet[str]
 
     similar: List[TinyMediumDocument]
 
-    def __init__(
-        self, medium: TinyMediumDocument, similar: List[TinyMediumDocument]
-    ):
-        self.medium_id = medium.medium_id
-        self.aspect_ratio = medium.aspect_ratio
-        self.medium_hash = medium.medium_hash
-        self.mime_type = medium.mime_type
-        self.rating = medium.rating
-        self.innate_tag_names = medium.innate_tag_names
-        self.searchable_tag_names = medium.searchable_tag_names
-        self.absent_tag_names = medium.absent_tag_names
 
-        self.similar = similar
+def create_medium_detail(
+    medium: MediumDocument, similar: List[TinyMediumDocument]
+) -> MediumDetail:
+    return MediumDetail(
+        medium_id=medium.medium_id,
+        medium_hash=medium.medium_hash,
+        mime_type=medium.mime_type,
+        rating=medium.rating,
+        innate_tag_names=medium.innate_tag_names,
+        searchable_tag_names=medium.searchable_tag_names,
+        absent_tag_names=medium.absent_tag_names,
+        similar=similar,
+    )

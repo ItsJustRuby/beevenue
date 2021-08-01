@@ -13,7 +13,6 @@ class IndexedMedium(
     def __init__(
         self,
         medium_id: int,
-        aspect_ratio: str,
         medium_hash: str,
         mime_type: str,
         rating: str,
@@ -23,7 +22,6 @@ class IndexedMedium(
         absent_tag_names: FrozenSet[str],
     ) -> None:
         self.medium_id = medium_id
-        self.aspect_ratio = aspect_ratio
         self.medium_hash = medium_hash
         self.mime_type = mime_type
         self.rating = rating
@@ -54,6 +52,7 @@ class TinyIndexedMedium(TinyMediumDocument):
     def from_full(full: MediumDocument) -> "TinyIndexedMedium":
         return TinyIndexedMedium(
             full.medium_id,
+            full.medium_hash,
             full.rating,
             full.innate_tag_names,
             full.searchable_tag_names,
@@ -63,12 +62,14 @@ class TinyIndexedMedium(TinyMediumDocument):
     def __init__(
         self,
         medium_id: int,
+        medium_hash: str,
         rating: str,
         innate_tag_names: FrozenSet[str],
         searchable_tag_names: FrozenSet[str],
         absent_tag_names: FrozenSet[str],
     ) -> None:
         self.medium_id = medium_id
+        self.medium_hash = medium_hash
         self.rating = rating
         self.innate_tag_names = innate_tag_names
         self.searchable_tag_names = searchable_tag_names

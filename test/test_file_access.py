@@ -1,16 +1,6 @@
-def test_cannot_access_magic_thumbs_without_logging_in(client):
-    res = client.get("/thumbs/1")
-    assert res.status_code == 401
-
-
 def test_cannot_access_files_without_logging_in(client):
     res = client.get("/files/hash1.jpg")
     assert res.status_code == 401
-
-
-def test_cannot_access_magic_thumbs_for_nonexistant_medium(client, asAdmin):
-    res = client.get("/thumbs/1253452")
-    assert res.status_code == 404
 
 
 def test_can_access_files(client, asAdmin):
@@ -23,31 +13,23 @@ def test_can_access_files_as_user(client, asUser):
     assert res.status_code == 200
 
 
-def test_cannot_access_nonexistant_file(client, asAdmin):
+def test_accessing_nonexistant_file_does_not_crash(client, asAdmin):
     res = client.get("/files/12345678.jpg")
-    assert (res.status_code // 100) == 4
+    assert res.status_code < 500
 
 
-def test_can_access_magic_thumbs_without_client_hint(client, asAdmin):
-    res = client.get("/thumbs/1")
+def test_cannot_access_thumbs_without_logging_in(client):
+    res = client.get("/thumbs/hash1.jpg")
+    assert res.status_code == 401
+
+
+def test_accessing_thumbs_for_nonexistant_medium_does_not_crash(
+    client, asAdmin
+):
+    res = client.get("/thumbs/ffffffff.jpg")
+    assert res.status_code < 500
+
+
+def test_can_access_thumb(client, asAdmin):
+    res = client.get("/thumbs/hash1.jpg")
     assert res.status_code == 200
-
-
-def test_can_access_magic_thumbs_with_small_vw_client_hint(client, asAdmin):
-    res = client.get("/thumbs/1", headers={"Viewport-Width": "900"})
-    assert res.status_code == 200
-
-
-def test_can_access_magic_thumbs_with_large_vw_client_hint(client, asAdmin):
-    res = client.get("/thumbs/1", headers={"Viewport-Width": "1600"})
-    assert res.status_code == 200
-
-
-def test_sendfile_headers_are_set(client, asUser):
-    prev = client.app_under_test.use_x_sendfile
-    client.app_under_test.use_x_sendfile = True
-    res = client.get("/thumbs/1")
-    client.app_under_test.use_x_sendfile = prev
-
-    assert res.status_code == 200
-    assert "X-Sendfile" in res.headers

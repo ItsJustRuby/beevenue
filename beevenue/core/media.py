@@ -10,10 +10,11 @@ from sqlalchemy.orm import joinedload
 
 from beevenue import paths, signals
 from beevenue.core.tags import delete_orphans
-from beevenue.flask import BeevenueContext, EXTENSIONS
+from beevenue.extensions import EXTENSIONS
+from beevenue.flask import BeevenueContext
 
 from ..models import Medium, MediumTag, MediumTagAbsence
-from .detail import MediumDetail
+from .detail import MediumDetail, create_medium_detail
 from .similar import similar_media
 
 
@@ -45,7 +46,9 @@ def get(
     if context.is_sfw and maybe_medium.rating != "s":
         return 400, None
 
-    detail = MediumDetail(maybe_medium, similar_media(context, maybe_medium))
+    detail = create_medium_detail(
+        maybe_medium, similar_media(context, maybe_medium)
+    )
     return 200, detail
 
 

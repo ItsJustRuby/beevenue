@@ -40,7 +40,7 @@ def _non_innate_tags(
     return extra
 
 
-def _create_spindexed_medium(
+def _create_indexed_medium(
     data_source: AbstractDataSource, medium: Medium
 ) -> IndexedMedium:
     # First, get innate tags. These will never change.
@@ -56,7 +56,6 @@ def _create_spindexed_medium(
 
     return IndexedMedium(
         medium.id,
-        str(medium.aspect_ratio),
         medium.hash,
         medium.mime_type,
         medium.rating,
@@ -75,7 +74,7 @@ def single_load(medium_id: int) -> MediumDocument:
         .first()
     )
 
-    return _create_spindexed_medium(SingleLoadDataSource(), matching_medium)
+    return _create_indexed_medium(SingleLoadDataSource(), matching_medium)
 
 
 def full_load() -> Sequence[MediumDocument]:
@@ -108,8 +107,6 @@ def full_load() -> Sequence[MediumDocument]:
         implied_by_this, aliases_by_id, tag_name_by_id
     )
 
-    media_to_cache = [
-        _create_spindexed_medium(data_source, m) for m in all_media
-    ]
+    media_to_cache = [_create_indexed_medium(data_source, m) for m in all_media]
 
     return media_to_cache

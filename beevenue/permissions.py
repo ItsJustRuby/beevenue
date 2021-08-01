@@ -68,7 +68,7 @@ def _can_see_rating(
     return Permission(_CanSeeMediumWithRatingNeed(rating))
 
 
-def _can_see_spindex_medium(
+def _can_see_cached_medium(
     maybe_medium: Optional[MediumDocument],
 ) -> Permission:
     """Get Permission to see the specified medium."""
@@ -80,7 +80,7 @@ def _can_see_spindex_medium(
 
 
 def _can_see_medium(medium_id: int) -> Permission:
-    return _can_see_spindex_medium(g.fast.get_tiny(medium_id))
+    return _can_see_cached_medium(g.fast.get_tiny(medium_id))
 
 
 def _can_see_full_path(full_path: str) -> Permission:

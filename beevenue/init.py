@@ -3,7 +3,7 @@ from typing import Any, Optional
 from flask import current_app, session
 from flask_login import current_user
 
-from .flask import BeevenueContext, BeevenueFlask, BeevenueResponse, request
+from .flask import BeevenueContext, BeevenueFlask, request
 
 
 def _context_setter() -> None:
@@ -45,52 +45,8 @@ def _login_required_by_default() -> Optional[Any]:
     return None
 
 
-def _set_client_hint_headers(res: BeevenueResponse) -> BeevenueResponse:
-    """Set client hint headers for better performance."""
-
-    client_hint_fields = ["Viewport-Width"]
-
-    res.headers.setdefault("Accept-CH", ", ".join(client_hint_fields))
-    res.headers.setdefault("Accept-CH-Lifetime", 86400)
-
-    for hint in client_hint_fields:
-        # res.vary is actually a werkzeug.datastructures.HeaderSet,
-        # but mypy does not infer that correctly.
-        res.vary.add(hint)  # type: ignore
-
-    return res
-
-
-def _set_server_push_link_header(res: BeevenueResponse) -> BeevenueResponse:
-    """Set Link headers for better performance."""
-
-    if not hasattr(res, "push_links") or not res.push_links:
-        return res
-
-    res.headers["Link"] = ", ".join(res.push_links)
-    return res
-
-
-def _set_sendfile_header(res: BeevenueResponse) -> BeevenueResponse:
-    """Set X-Accel-Redirect headers for better performance."""
-
-    if (
-        not hasattr(res, "sendfile_header")
-        or not res.sendfile_header
-        or not current_app.use_x_sendfile
-    ):
-        return res
-
-    res.headers["X-Accel-Redirect"] = res.sendfile_header
-    return res
-
-
 def init_app(app: BeevenueFlask) -> None:
     """Register request/response lifecycle methods."""
 
     app.before_request(_context_setter)
     app.before_request(_login_required_by_default)
-
-    app.after_request(_set_client_hint_headers)  # type: ignore
-    app.after_request(_set_server_push_link_header)  # type: ignore
-    app.after_request(_set_sendfile_header)  # type: ignore

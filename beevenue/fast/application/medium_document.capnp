@@ -2,12 +2,11 @@
 
 struct MediumDocument {
   mediumId @0 :UInt32;
-  aspectRatio @1 :Text;
-  mediumHash @2 :Text;
-  mimeType @3 :Text;
-  rating @4 :Text;
-  tinyThumbnail @5 :Data;
-  innateTagNames @6 :List(Text);
-  searchableTagNames @7 :List(Text);
-  absentTagNames @8 :List(Text);
+  mediumHash @1 :Text;
+  mimeType @2 :Text;
+  rating @3 :Text;
+  innateTagNames @4 :List(Text);
+  searchableTagNames @5 :List(Text);
+  absentTagNames @6 :List(Text);
+  tinyThumbnail @7 :Data;
 }

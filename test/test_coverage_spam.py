@@ -28,10 +28,9 @@ def test_permission_need_internals():
     assert len(need.__repr__()) > 0
 
 
-def test_spindexed_medium_internals():
+def test_indexed_medium_internals():
     medium = IndexedMedium(
         1,
-        "1.0",
         "someHash",
         "mime",
         "q",
@@ -43,7 +42,6 @@ def test_spindexed_medium_internals():
 
     medium_with_same_id = IndexedMedium(
         1,
-        "2.0",
         "someOtherHash",
         "mime",
         "q",
@@ -58,9 +56,10 @@ def test_spindexed_medium_internals():
     _assert_equally_hashed(medium, medium_with_same_id)
 
 
-def test_tiny_spindexed_medium_internals():
+def test_tiny_indexed_medium_internals():
     medium = TinyIndexedMedium(
         1,
+        "hash1",
         "q",
         frozenset(),
         frozenset(),
@@ -69,6 +68,7 @@ def test_tiny_spindexed_medium_internals():
 
     medium_with_same_id = TinyIndexedMedium(
         1,
+        "hash2",
         "e",
         frozenset(),
         frozenset(),

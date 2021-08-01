@@ -1,10 +1,9 @@
 from base64 import b64encode
 from pathlib import Path
 
-from flask import Blueprint, g, send_from_directory
-from sentry_sdk import start_span
+from flask import Blueprint, g
+from flask.helpers import make_response
 
-from beevenue import paths
 from beevenue.flask import request, BeevenueResponse
 
 from .. import notifications, permissions
@@ -71,48 +70,23 @@ def pick_thumbnail(  # type: ignore
     return notifications.new_thumbnail(), status_code
 
 
-@bp.route("/thumbs/<int:medium_id>")
-@permissions.get_medium
-def get_magic_thumb(medium_id: int):  # type: ignore
-    medium = g.fast.get_medium(medium_id)
-    if not medium:
-        return "", 404
+def _sendfile_response(nginx_path: Path) -> BeevenueResponse:
+    # Default Content-Type is text/html, and nginx will simply forward that.
+    # For media files and thumbs, that will be incorrect.
+    # If we set "", nginx will determine the Content-Type from the actual file.
+    res = make_response(("", 200, {"Content-Type": ""}))
 
-    size = "s"
-
-    if (
-        "Viewport-Width" in request.headers
-        and int(request.headers["Viewport-Width"]) > 1200
-    ):
-        size = "l"
-
-    thumb_path = Path(f"{medium.medium_hash}.{size}.jpg")
-
-    with start_span(op="http", description="send_from_directory"):
-        res: BeevenueResponse = send_from_directory(  # type: ignore
-            paths.thumbnail_directory(), thumb_path
-        )
-
-    # Note this must be distinct from the public route ("/thumbs"),
-    # or Nginx will freak.
-    res.set_sendfile_header(  # pylint: disable=no-member
-        Path("/", "beevenue_thumbs", thumb_path)
-    )
-
-    return res
+    res.headers["X-Accel-Redirect"] = str(nginx_path)
+    return res  # type: ignore
 
 
-@bp.route("/files/<path:full_path>")
+@bp.route("/thumbs/<string:full_path>")
+@permissions.get_medium_file
+def get_thumb(full_path: str):  # type: ignore
+    return _sendfile_response(Path("/", "beevenue_thumbs", full_path))
+
+
+@bp.route("/files/<string:full_path>")
 @permissions.get_medium_file
 def get_file(full_path: str):  # type: ignore
-    with start_span(op="http", description="send_from_directory"):
-        res: BeevenueResponse = send_from_directory(  # type: ignore
-            paths.medium_directory(), full_path
-        )
-
-    # Note this must be distinct from the public route ("/files"),
-    # or Nginx will freak.
-    res.set_sendfile_header(  # pylint: disable=no-member
-        Path("/", "media", full_path)
-    )
-    return res
+    return _sendfile_response(Path("/", "media", full_path))

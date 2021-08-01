@@ -4,7 +4,6 @@ from beevenue.types import BeevenueFlask
 import logging
 from typing import Any, Callable
 
-from flask_compress import Compress
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -46,7 +45,6 @@ def get_application(
         supports_credentials=True,
         origins=application.config["BEEVENUE_ALLOWED_CORS_ORIGINS"],
     )
-    Compress(application)
 
     db.init_app(application)
     Migrate(application, db)
@@ -76,7 +74,7 @@ def get_application(
         strawberry_init_app(application)
 
         # Only used for testing - needs to happen after DB is setup,
-        # but before filling Spindex from DB.
+        # but before filling caches from DB.
         fill_db(db)
 
         fast_init_app(application)

@@ -19,9 +19,7 @@ class TinyMediumDocument(ABC):
 
     __slots__ = [
         "medium_id",
-        "aspect_ratio",
         "medium_hash",
-        "mime_type",
         "rating",
         "innate_tag_names",
         "searchable_tag_names",
@@ -29,9 +27,7 @@ class TinyMediumDocument(ABC):
     ]
 
     medium_id: int
-    aspect_ratio: str
     medium_hash: str
-    mime_type: str
     rating: str
     innate_tag_names: FrozenSet[str]
     searchable_tag_names: FrozenSet[str]
@@ -43,7 +39,6 @@ class MediumDocument(TinyMediumDocument):
 
     __slots__ = [
         "medium_id",
-        "aspect_ratio",
         "medium_hash",
         "mime_type",
         "rating",
@@ -54,7 +49,6 @@ class MediumDocument(TinyMediumDocument):
     ]
 
     medium_id: int
-    aspect_ratio: str
     medium_hash: str
     mime_type: str
     rating: str

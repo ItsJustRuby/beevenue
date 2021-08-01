@@ -37,17 +37,3 @@ def try_convert_model(model: Any) -> Any:
         if not schema:
             return model
         return jsonify(schema.dump(model))
-
-
-def decorate_response(res: Any, model: Any) -> None:
-    """Set headers on the response based on the returned model.
-
-    We use this to add preload headers for related files to that
-    specified in the model Thanks to HTTP/2, this makes navigation much faster.
-    """
-    with start_span(op="http", description="decorate_response"):
-        if isinstance(model, MediumDetail):
-            res.push_medium(model)
-            res.push_thumbs(model.similar)
-        elif isinstance(model, Pagination) and model.items:
-            res.push_thumbs(model.items[:20])

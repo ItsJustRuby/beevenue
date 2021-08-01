@@ -7,10 +7,10 @@ from sqlalchemy.orm import joinedload
 from beevenue.flask import request
 
 from . import tags
-from ..types import TinyMediumDocument
+from ..types import MediumDocument
 from ..models import MediumTag, Medium, Tag, MediumTagAbsence
 from .. import signals
-from .detail import MediumDetail
+from .detail import MediumDetail, create_medium_detail
 from .media import similar_media
 from .tags import ValidTagName, delete_orphans
 from .tags.new import create
@@ -190,8 +190,8 @@ def update_medium(
 
     signals.medium_metadata_changed.send(maybe_medium)
 
-    result: TinyMediumDocument = g.fast.get_medium(  # type: ignore
-        maybe_medium.id
-    )
+    result: MediumDocument = g.fast.get_medium(maybe_medium.id)  # type: ignore
 
-    return MediumDetail(result, similar_media(request.beevenue_context, result))
+    return create_medium_detail(
+        result, similar_media(request.beevenue_context, result)
+    )

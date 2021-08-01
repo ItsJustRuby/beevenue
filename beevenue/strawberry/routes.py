@@ -1,13 +1,13 @@
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
 
 from flask import Blueprint, current_app, g, jsonify
 from flask.json import dumps
 
 from beevenue.flask import request
-from beevenue.types import TinyMediumDocument
 
 from .. import permissions
+from ..types import TinyMediumDocument
 from .json import decode_rules_list
 from .rule import Rule
 from . import get_rules
@@ -34,20 +34,25 @@ def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
     all_media = g.fast.get_all_tiny()
 
     sorted_ratings = ["s", "q", "e", "u"]
-    semirandom_sorting_index = {
-        m.medium_id: sorted_ratings.index(m.rating) + random.uniform(-0.4, 0.4)
-        for m in all_media
+
+    media_by_rating: Dict[str, List[TinyMediumDocument]] = {
+        r: list() for r in sorted_ratings
     }
 
-    def shuffler(medium: TinyMediumDocument) -> float:
-        return semirandom_sorting_index[medium.medium_id]
+    for medium in all_media:
+        media_by_rating[medium.rating].append(medium)
 
-    all_media.sort(key=shuffler)
+    def media_generator() -> Generator[TinyMediumDocument, None, None]:
+        for rating in sorted_ratings:
+            current_media = media_by_rating[rating]
+            random.shuffle(current_media)
+            for medium in current_media:
+                yield medium
 
     rules = get_rules()
     random.shuffle(rules)
 
-    for medium in all_media:
+    for medium in media_generator():
         for rule in rules:
             if rule.is_violated_by(medium):
                 return (medium.medium_id, rule)

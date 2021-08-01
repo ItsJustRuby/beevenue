@@ -16,7 +16,6 @@ class _MediumDocumentSchema(Schema):
     absent_tag_names = fields.Method(
         "extract_absent_tags", data_key="absentTags"
     )
-    aspect_ratio = fields.String(data_key="aspectRatio")
     medium_hash = fields.String(data_key="hash")
     rating = fields.String()
     mime_type = fields.String()
@@ -32,7 +31,9 @@ class _MediumDocumentSchema(Schema):
 
 class _MediumDocumentDetailSchema(_MediumDocumentSchema):
     similar = fields.Nested(
-        "_MediumDocumentDetailSchema", many=True, only=["medium_id"]
+        "_MediumDocumentDetailSchema",
+        many=True,
+        only=["medium_id", "medium_hash"],
     )
 
 
@@ -56,7 +57,7 @@ class _PaginationSchema(Schema):
     items = fields.Nested(
         _PaginationMediumSchema,
         many=True,
-        only=["medium_id", "aspect_ratio", "medium_hash", "tiny_thumbnail"],
+        only=["medium_id", "medium_hash", "tiny_thumbnail"],
     )
     page_count = fields.Int(data_key="pageCount")
     page_number = fields.Int(data_key="pageNumber")

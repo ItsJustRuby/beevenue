@@ -101,7 +101,6 @@ class FullMediumDocumentSchema(CapnpSchema):
 
     SIMPLE = [
         "medium_id",
-        "aspect_ratio",
         "medium_hash",
         "mime_type",
         "rating",
@@ -121,7 +120,6 @@ class FullMediumDocumentSchema(CapnpSchema):
     def construct_object(self, doc: Any) -> MediumDocument:
         return IndexedMedium(
             doc.mediumId,
-            doc.aspectRatio,
             doc.mediumHash,
             doc.mimeType,
             doc.rating,
@@ -137,6 +135,7 @@ class TinyMediumDocumentSchema(CapnpSchema):
 
     SIMPLE = [
         "medium_id",
+        "medium_hash",
         "rating",
     ]
 
@@ -153,6 +152,7 @@ class TinyMediumDocumentSchema(CapnpSchema):
     def construct_object(self, doc: Any) -> TinyMediumDocument:
         return TinyIndexedMedium(
             doc.mediumId,
+            doc.mediumHash,
             doc.rating,
             frozenset(doc.innateTagNames),
             frozenset(doc.searchableTagNames),
