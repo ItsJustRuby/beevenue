@@ -8,20 +8,22 @@ from .core.search.batch_search_results import BatchSearchResults
 from .core.search.pagination import Pagination
 from .core.tags.tag_summary import TagSummary
 from .models import Tag
+from .strawberry.viewmodels import VIOLATIONS_SCHEMA, ViolationsViewModel
 from .viewmodels import (
-    batch_search_results_schema,
-    medium_detail_schema,
-    pagination_schema,
-    tag_show_schema,
-    tag_summary_schema,
+    BATCH_SEARCH_RESULTS_SCHEMA,
+    MEDIUM_DETAIL_SCHEMA,
+    PAGINATION_SCHEMA,
+    TAG_SHOW_SCHEMA,
+    TAG_SUMMARY_SCHEMA,
 )
 
 SCHEMAS = {
-    MediumDetail: medium_detail_schema,
-    Tag: tag_show_schema,
-    Pagination: pagination_schema,
-    TagSummary: tag_summary_schema,
-    BatchSearchResults: batch_search_results_schema,
+    MediumDetail: MEDIUM_DETAIL_SCHEMA,
+    Tag: TAG_SHOW_SCHEMA,
+    Pagination: PAGINATION_SCHEMA,
+    TagSummary: TAG_SUMMARY_SCHEMA,
+    BatchSearchResults: BATCH_SEARCH_RESULTS_SCHEMA,
+    ViolationsViewModel: VIOLATIONS_SCHEMA,
 }
 
 

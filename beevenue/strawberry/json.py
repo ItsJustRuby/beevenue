@@ -14,7 +14,9 @@ from .then import Fail, Then, HasAllTagsAbsentOrPresent
 from . import types
 
 
-def _decode_common(obj: types.RuleJson) -> IffAndThen:
+def _decode_common(
+    obj: types.RuleJson,
+) -> IffAndThen:
     if obj["type"] == "hasRating":
         return HasRating(obj.get("data", None))  # type: ignore
 

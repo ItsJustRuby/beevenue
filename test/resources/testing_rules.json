@@ -15,6 +15,20 @@
     },
     {
         "if": {
+            "data": "s",
+            "type": "hasRating"
+        },
+        "then": [
+            {
+                "data": [
+                    "A"
+                ],
+                "type": "hasAnyTagsIn"
+            }
+        ]
+    },
+    {
+        "if": {
             "data": [
                 "u:.*"
             ],
@@ -56,7 +70,7 @@
     {
         "if": {
             "data": [
-                "x:.*"
+                "y:.*"
             ],
             "type": "hasAnyTagsLike"
         },
@@ -89,6 +103,44 @@
                     "A"
                 ],
                 "type": "hasAllAbsentOrPresent"
+            }
+        ]
+    },
+    {
+        "if": {
+            "type": "hasRating"
+        },
+        "then": [
+            {
+                "data": [
+                    "A"
+                ],
+                "type": "hasAllAbsentOrPresent"
+            }
+        ]
+    },
+    {
+        "if": {
+            "data": [
+                "y:.*"
+            ],
+            "type": "hasAnyTagsLike"
+        },
+        "then": [
+            {
+                "data": [
+                    "impossible1",
+                    "impossible2",
+                    "impossible3",
+                    "impossible4",
+                    "impossible5",
+                    "impossible6",
+                    "impossible7"
+                ],
+                "type": "hasAnyTagsIn"
+            },
+            {
+                "type": "hasRating"
             }
         ]
     }

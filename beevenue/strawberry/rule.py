@@ -1,7 +1,8 @@
 from beevenue.types import TinyMediumDocument
-from typing import Iterable
+from typing import Generator, Iterable
 
 from .common import Iff, Then
+from .violations import Violation
 
 
 class Rule:
@@ -16,18 +17,19 @@ class Rule:
         self.iff = iff
         self.thens = thens
 
-    def is_violated_by(self, medium: TinyMediumDocument) -> bool:
-        """Check if that medium violates this rule."""
-
-        applies = self.iff.applies_to(medium)
-        if not applies:
-            return False
+    def violations_for(
+        self, medium: TinyMediumDocument
+    ) -> Generator[Violation, None, None]:
+        if not self.iff.applies_to(medium):
+            return
 
         for then in self.thens:
-            if not then.applies_to(medium):
-                return True
+            for violation in then.violations_for(medium):
+                yield violation
 
-        return False
+    def is_violated_by(self, medium: TinyMediumDocument) -> bool:
+        """Check if that medium violates this rule."""
+        return bool(next(self.violations_for(medium), None))
 
     def pprint(self) -> str:
         """Pretty-print this rule."""

@@ -1,13 +1,12 @@
-import random
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Dict, List
 
-from flask import Blueprint, current_app, g, jsonify
+from flask import Blueprint, current_app, make_response
 from flask.json import dumps
 
 from beevenue.flask import request
 
 from .. import permissions
-from ..types import TinyMediumDocument
+from .get import get_violations, random_rule_violation
 from .json import decode_rules_list
 from .rule import Rule
 from . import get_rules
@@ -30,41 +29,19 @@ def _pretty_print(rule_breaks: Dict[int, List[Rule]]) -> Dict[int, List[str]]:
     return json_helper
 
 
-def _random_rule_violation() -> Optional[Tuple[int, Rule]]:
-    all_media = g.fast.get_all_tiny()
-
-    sorted_ratings = ["s", "q", "e", "u"]
-
-    media_by_rating: Dict[str, List[TinyMediumDocument]] = {
-        r: list() for r in sorted_ratings
-    }
-
-    for medium in all_media:
-        media_by_rating[medium.rating].append(medium)
-
-    def media_generator() -> Generator[TinyMediumDocument, None, None]:
-        for rating in sorted_ratings:
-            current_media = media_by_rating[rating]
-            random.shuffle(current_media)
-            for medium in current_media:
-                yield medium
-
-    rules = get_rules()
-    random.shuffle(rules)
-
-    for medium in media_generator():
-        for rule in rules:
-            if rule.is_violated_by(medium):
-                return (medium.medium_id, rule)
-
-    return None
-
-
 @bp.route("/rules")
 @bp.route("/rules/rules.json")
 @permissions.is_owner
 def get_rules_as_json():  # type: ignore
-    return jsonify(get_rules()), 200
+    rules_json = dumps(get_rules(), indent=4, separators=(",", ": "))
+    res = make_response(
+        (
+            rules_json,
+            200,
+        )
+    )
+    res.headers["Content-Disposition"] = "attachment"
+    return res
 
 
 @bp.route("/rules/<int:rule_index>", methods=["DELETE"])
@@ -104,15 +81,13 @@ def validate_rules():  # type: ignore
 @bp.route("/tags/missing/<int:medium_id>", methods=["GET", "OPTION"])
 @permissions.get_medium
 def get_missing_tags_for_post(medium_id: int):  # type: ignore
-    medium = g.fast.get_tiny(medium_id)
-    broken_rules = [r for r in get_rules() if r.is_violated_by(medium)]
-    return _pretty_print({medium_id: broken_rules})
+    return get_violations(medium_id)
 
 
 @bp.route("/tags/missing/any", methods=["GET", "OPTION"])
 @permissions.is_owner
 def get_missing_tags_any():  # type: ignore
-    maybe_violation = _random_rule_violation()
+    maybe_violation = random_rule_violation()
     if not maybe_violation:
         return _pretty_print({})
 

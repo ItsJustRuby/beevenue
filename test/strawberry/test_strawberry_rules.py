@@ -29,6 +29,8 @@ def test_get_rules(client, asAdmin):
 def test_get_rules_json(client, asAdmin):
     r = client.get("/rules/rules.json")
     assert r.status_code == 200
+    assert "Content-Disposition" in r.headers
+    assert r.headers["Content-Disposition"] == "attachment"
 
 
 def test_delete_nonexistant_rule(client, asAdmin):

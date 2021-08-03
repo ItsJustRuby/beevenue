@@ -33,7 +33,7 @@ request: BeevenueRequest = flask_request  # type: ignore
 
 
 class BeevenueFlaskImpl(BeevenueFlask):
-    """Custom implementation of Flask application """
+    """Custom implementation of Flask application"""
 
     request_class = BeevenueRequest
     response_class = BeevenueResponse

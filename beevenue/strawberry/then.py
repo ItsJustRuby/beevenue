@@ -1,7 +1,9 @@
-from typing import FrozenSet
+from typing import FrozenSet, Generator
 
 from beevenue.types import TinyMediumDocument
+from . import violations
 from .common import TagsRulePart, Then
+from .violations import Violation
 
 
 class HasAllTagsAbsentOrPresent(TagsRulePart, Then):
@@ -16,11 +18,14 @@ class HasAllTagsAbsentOrPresent(TagsRulePart, Then):
         TagsRulePart.__init__(self)
         self.tag_names: FrozenSet[str] = frozenset(tag_names)
 
-    def _filter_predicate(self, medium: TinyMediumDocument) -> bool:
-        result: bool = self.tag_names <= (
-            medium.searchable_tag_names | medium.absent_tag_names
-        )
-        return result
+    def violations_for(
+        self, medium: TinyMediumDocument
+    ) -> Generator[Violation, None, None]:
+        for tag in self.tag_names:
+            if tag not in (
+                medium.searchable_tag_names | medium.absent_tag_names
+            ):
+                yield violations.ShouldHaveTagPresentOrAbsent(tag)
 
     @property
     def _tags_as_str(self) -> str:
@@ -41,6 +46,11 @@ class Fail(Then):
 
     def applies_to(self, _: TinyMediumDocument) -> bool:
         return False
+
+    def violations_for(
+        self, medium: TinyMediumDocument
+    ) -> Generator[Violation, None, None]:
+        yield violations.Nontrivial()
 
     def pprint_then(self) -> str:
         return "should not exist."

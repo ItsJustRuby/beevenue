@@ -18,7 +18,7 @@ class _MediumDocumentSchema(Schema):
     )
     medium_hash = fields.String(data_key="hash")
     rating = fields.String()
-    mime_type = fields.String()
+    mime_type = fields.String(data_key="mimeType")
 
     def extract_innate_tags(self, obj: MediumDocument) -> List[str]:
         return [  # pylint: disable=unnecessary-comprehension
@@ -106,8 +106,8 @@ class _TagSummarySchema(Schema):
     tags = fields.Nested(_TagSummaryItemSchema, many=True)
 
 
-medium_detail_schema = _MediumDocumentDetailSchema()
-pagination_schema = _PaginationSchema()
-batch_search_results_schema = _BatchSearchResultsSchema()
-tag_summary_schema = _TagSummarySchema()
-tag_show_schema = _TagShowSchema()
+MEDIUM_DETAIL_SCHEMA = _MediumDocumentDetailSchema()
+PAGINATION_SCHEMA = _PaginationSchema()
+BATCH_SEARCH_RESULTS_SCHEMA = _BatchSearchResultsSchema()
+TAG_SUMMARY_SCHEMA = _TagSummarySchema()
+TAG_SHOW_SCHEMA = _TagShowSchema()
