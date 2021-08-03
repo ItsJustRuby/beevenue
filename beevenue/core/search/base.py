@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from re import Match
 
-from ...types import MediumDocument
+from ...document_types import TinyMediumDocument
 
 
 class SearchTerm(metaclass=ABCMeta):
@@ -13,7 +13,7 @@ class SearchTerm(metaclass=ABCMeta):
         """Construct this SearchTerm from the match of its regex."""
 
     @abstractmethod
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         """Does this SearchTerm apply to this medium?"""
 
     def __eq__(self, other: object) -> bool:

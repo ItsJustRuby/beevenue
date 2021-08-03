@@ -1,4 +1,4 @@
-from beevenue.types import MediumDocument, TinyMediumDocument
+from beevenue.document_types import MediumDocument, TinyMediumDocument
 from typing import Any, List, Optional
 
 from .application import ApplicationWideCache

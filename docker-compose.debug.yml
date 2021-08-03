@@ -1,4 +1,4 @@
 version: "3"
 services:
   app:
-    command: sh script/release_server.sh --reload
+    entrypoint: ["bash", "script/release_server.sh", "--reload"]

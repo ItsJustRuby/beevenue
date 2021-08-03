@@ -1,11 +1,11 @@
 from typing import Iterable, Optional, Set, Tuple
 
 from sqlalchemy.orm import joinedload
-from flask import g
+from beevenue.flask import g
 
 from ...models import Tag, Medium, TagAlias
 from ... import signals
-from . import ValidTagName, validate
+from .tags import ValidTagName, validate
 from .load import load
 
 

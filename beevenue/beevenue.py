@@ -16,12 +16,12 @@ from .auth.routes import blueprint as auth_bp
 from .cli import init_cli
 from .core import batch_routes, stats_routes, media_routes, routes, tag_routes
 from .db import db
-from .db import init_app as db_init_app
+from .db_init import init_app as db_init_app
 from .flask import BeevenueFlaskImpl
 from .init import init_app as context_init_app
 from .login_manager import login_manager
 from .principal import principal
-from .fast import init_app as fast_init_app
+from .fast.init import init_app as fast_init_app
 from .strawberry.init import init_app as strawberry_init_app
 
 

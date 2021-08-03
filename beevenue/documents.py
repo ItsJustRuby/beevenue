@@ -1,6 +1,6 @@
 from typing import List, FrozenSet
 
-from .types import MediumDocument, TinyMediumDocument
+from .document_types import MediumDocument, TinyMediumDocument
 
 
 class IndexedMedium(

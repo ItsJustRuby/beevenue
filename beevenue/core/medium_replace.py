@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import Literal, Optional, TypedDict, Union
 
-from flask import g
 from werkzeug.datastructures import FileStorage
 
 from beevenue.extensions import EXTENSIONS
+from beevenue.flask import g
 from . import thumbnails
 from ..models import Medium
 from .. import signals

@@ -1,6 +1,6 @@
 from typing import FrozenSet, Generator
 
-from beevenue.types import TinyMediumDocument
+from beevenue.document_types import TinyMediumDocument
 from . import violations
 from .common import TagsRulePart, Then
 from .violations import Violation

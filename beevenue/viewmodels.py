@@ -7,7 +7,7 @@ from beevenue import paths
 
 from .core.search.batch_search_results import BatchSearchResults
 from .models import Tag
-from .types import MediumDocument
+from .document_types import MediumDocument
 
 
 class _MediumDocumentSchema(Schema):

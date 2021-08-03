@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List
 
-from ...types import MediumDocument
+from ...document_types import MediumDocument
 
 
 class BatchSearchResults:

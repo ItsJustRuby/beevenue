@@ -1,6 +1,7 @@
-from flask import Blueprint, g
+from flask import Blueprint
 from flask.json import jsonify
 
+from beevenue.flask import g
 from .. import permissions
 
 bp = Blueprint("stats", __name__)

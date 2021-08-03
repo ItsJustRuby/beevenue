@@ -1,7 +1,17 @@
-from abc import ABC
-from typing import Any, FrozenSet
+from typing import Any
 
 from flask.app import Flask
+from flask.ctx import _AppCtxGlobals
+from sqlalchemy.orm.scoping import scoped_session
+
+from .fast.types import Cache
+
+
+class BeevenueG(_AppCtxGlobals):
+    """Type hint for flask.g."""
+
+    db: scoped_session
+    fast: Cache
 
 
 class BeevenueFlask(Flask):
@@ -12,47 +22,3 @@ class BeevenueFlask(Flask):
 
     def __init__(self, name: str, *args: Any, **kwargs: Any) -> None:
         Flask.__init__(self, name, *args, **kwargs)
-
-
-class TinyMediumDocument(ABC):
-    """Flattened, low-footprint in-memory representation of a medium."""
-
-    __slots__ = [
-        "medium_id",
-        "medium_hash",
-        "rating",
-        "innate_tag_names",
-        "searchable_tag_names",
-        "absent_tag_names",
-    ]
-
-    medium_id: int
-    medium_hash: str
-    rating: str
-    innate_tag_names: FrozenSet[str]
-    searchable_tag_names: FrozenSet[str]
-    absent_tag_names: FrozenSet[str]
-
-
-class MediumDocument(TinyMediumDocument):
-    """Flattened, full in-memory representation of a medium."""
-
-    __slots__ = [
-        "medium_id",
-        "medium_hash",
-        "mime_type",
-        "rating",
-        "tiny_thumbnail",
-        "innate_tag_names",
-        "searchable_tag_names",
-        "absent_tag_names",
-    ]
-
-    medium_id: int
-    medium_hash: str
-    mime_type: str
-    rating: str
-    tiny_thumbnail: bytes
-    innate_tag_names: FrozenSet[str]
-    searchable_tag_names: FrozenSet[str]
-    absent_tag_names: FrozenSet[str]

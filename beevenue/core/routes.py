@@ -1,10 +1,10 @@
 from base64 import b64encode
 from pathlib import Path
 
-from flask import Blueprint, g
+from flask import Blueprint
 from flask.helpers import make_response
 
-from beevenue.flask import request, BeevenueResponse
+from beevenue.flask import g, request, BeevenueResponse
 
 from .. import notifications, permissions
 from . import thumbnails

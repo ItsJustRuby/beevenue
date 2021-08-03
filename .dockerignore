@@ -2,9 +2,14 @@ media/*
 thumbs/*
 redis-data/*
 pg-data/*
-__pycache__/*
+__pycache__
+test-cache
 .git/*
 .github/*
 **/__pycache__/*
-.cache/*
+.cache
+.pytest_cache
+.mypy_cache
 **/*.pyc
+.coverage
+coverage.xml

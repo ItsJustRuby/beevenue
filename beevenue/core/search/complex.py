@@ -1,7 +1,7 @@
 from re import Match
 from typing import Callable, Dict
 
-from ...types import MediumDocument
+from ...document_types import TinyMediumDocument
 from .base import SearchTerm
 
 OPS: Dict[str, Callable[[int, int], bool]] = {
@@ -30,7 +30,7 @@ class CountingSearchTerm(SearchTerm):
     def from_match(cls, match: Match) -> "CountingSearchTerm":
         return CountingSearchTerm(**match.groupdict())
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         operator = OPS.get(self.operator, None)
         if not operator:
             raise Exception(f"Unknown operator in {self}")
@@ -58,7 +58,7 @@ class CategorySearchTerm(SearchTerm):
     def from_match(cls, match: Match) -> "CategorySearchTerm":
         return CategorySearchTerm(**match.groupdict())
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         matching_tag_names = [
             t
             for t in medium.innate_tag_names

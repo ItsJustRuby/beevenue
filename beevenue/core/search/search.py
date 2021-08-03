@@ -1,10 +1,10 @@
-from typing import List, Set, TypeVar
+from typing import List, Set
 
-from flask import g
+from beevenue.flask import g
 
 from beevenue.flask import request
 
-from ...types import MediumDocument
+from ...document_types import MediumDocument
 
 from .batch_search_results import BatchSearchResults
 from .pagination import Pagination
@@ -37,7 +37,7 @@ def run(search_term_list: List[str]) -> Pagination[MediumDocument]:
 
 def _run_unpaginated(search_terms: Set[SearchTerm]) -> BatchSearchResults:
     medium_ids = _search(search_terms)
-    return BatchSearchResults(list(g.fast.get_many(medium_ids)))
+    return BatchSearchResults(list(g.fast.get_many(list(medium_ids))))
 
 
 def _run_paginated(search_terms: Set[SearchTerm]) -> Pagination[MediumDocument]:
@@ -81,10 +81,7 @@ def _search(search_terms: Set[SearchTerm]) -> Set[int]:
     return result
 
 
-TItem = TypeVar("TItem")
-
-
-def _paginate(ids: List[TItem]) -> Pagination[TItem]:
+def _paginate(ids: List[int]) -> Pagination[int]:
     page_number_arg: str = request.args.get(  # type: ignore
         "pageNumber", type=str
     )

@@ -10,12 +10,12 @@ from typing import (
 )
 import time
 
-from flask import g
 from sqlalchemy.sql.expression import select
 
 from beevenue.documents import TinyIndexedMedium
+from beevenue.flask import g
 from beevenue.models import Tag, TagAlias
-from beevenue.types import MediumDocument, TinyMediumDocument
+from beevenue.document_types import MediumDocument, TinyMediumDocument
 
 from .types import CacheEntityKind, Command, Query, SubCache
 from .load import full_load, single_load

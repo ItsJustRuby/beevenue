@@ -1,18 +1,17 @@
 from typing import Iterable, List, Optional, Set, Tuple
 
-from flask import g
 from sqlalchemy import select, delete
 from sqlalchemy.orm import joinedload
 
-from beevenue.flask import request
+from beevenue.flask import g, request
 
-from . import tags
-from ..types import MediumDocument
+from .tags import tags
+from ..document_types import MediumDocument
 from ..models import MediumTag, Medium, Tag, MediumTagAbsence
 from .. import signals
 from .detail import MediumDetail, create_medium_detail
 from .media import similar_media
-from .tags import ValidTagName, delete_orphans
+from .tags.tags import ValidTagName, delete_orphans
 from .tags.new import create
 
 

@@ -1,10 +1,10 @@
 from abc import ABC
 from beevenue.strawberry.rule import Rule
-from beevenue.strawberry import get_rules
+from beevenue.strawberry.get import get_rules
 from re import Match
 from typing import NoReturn, Optional
 
-from ...types import MediumDocument
+from ...document_types import TinyMediumDocument
 from .base import SearchTerm
 
 
@@ -23,7 +23,7 @@ class PositiveSearchTerm(BasicSearchTerm):
     def __repr__(self) -> str:
         return f"{self.term}"
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         return self.term in medium.searchable_tag_names
 
     @classmethod
@@ -42,7 +42,7 @@ class ExactSearchTerm(BasicSearchTerm):
     def __repr__(self) -> str:
         return f"+{self.term}"
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         return self.term in medium.innate_tag_names
 
     @classmethod
@@ -63,7 +63,7 @@ class RatingSearchTerm(SearchTerm):
     def __repr__(self) -> str:
         return f"rating:{self.rating}"
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         return medium.rating == self.rating
 
 
@@ -87,7 +87,7 @@ class RuleSearchTerm(SearchTerm):
     def __repr__(self) -> str:
         return f"rule:{self.rule_index}"
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         if self.rule is None:
             return False
         return self.rule.is_violated_by(medium)
@@ -106,5 +106,5 @@ class Negative(SearchTerm):
     def __repr__(self) -> str:
         return f"!{self.inner_term.__repr__()}"
 
-    def applies_to(self, medium: MediumDocument) -> bool:
+    def applies_to(self, medium: TinyMediumDocument) -> bool:
         return not self.inner_term.applies_to(medium)

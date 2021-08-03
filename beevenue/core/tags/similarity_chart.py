@@ -1,11 +1,11 @@
 from typing import Dict, Set, TypedDict
 from collections import defaultdict
 
-from flask import g
+from beevenue.flask import g
 from sqlalchemy import select
 
 from ...models import MediumTag, Tag
-from . import tag_name_selector
+from .tags import tag_name_selector
 from .censorship import Censorship
 
 GroupedMediaIds = Dict[int, Set[int]]

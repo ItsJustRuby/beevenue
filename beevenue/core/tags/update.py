@@ -2,7 +2,7 @@ from typing import Tuple, Union, Optional
 
 from sqlalchemy import select, update as sql_update
 from sqlalchemy.orm import joinedload
-from flask import g
+from beevenue.flask import g
 
 from ... import signals
 from ...models import Tag, MediumTag

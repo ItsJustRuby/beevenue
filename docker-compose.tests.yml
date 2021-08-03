@@ -16,7 +16,8 @@ services:
       context: .
       dockerfile: ./script/test.Dockerfile
     volumes:
-      - .:/beevenue
+      # Coveralls needs this to figure out the PR
+      - .git:/beevenue/.git
     depends_on:
       - app
       - redis

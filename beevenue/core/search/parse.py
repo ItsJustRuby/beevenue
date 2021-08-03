@@ -2,7 +2,7 @@ import re
 from re import Pattern
 from typing import List, Optional, Set, Tuple, Type
 
-from ..tags import VALID_TAG_REGEX_INNER
+from ..tags.tags import VALID_TAG_REGEX_INNER
 from .base import SearchTerm
 from . import simple, complex as complex_terms
 

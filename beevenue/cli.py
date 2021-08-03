@@ -4,7 +4,7 @@ import os
 from typing import Iterable
 
 import click
-from flask import g
+from beevenue.flask import g
 
 from .core.file_upload import create_medium_from_upload
 from .flask import BeevenueFlask

@@ -6,10 +6,9 @@ from flask.json import dumps
 from beevenue.flask import request
 
 from .. import permissions
-from .get import get_violations, random_rule_violation
+from .get import get_rules, get_violations, random_rule_violation
 from .json import decode_rules_list
 from .rule import Rule
-from . import get_rules
 
 bp = Blueprint("strawberry", __name__)
 

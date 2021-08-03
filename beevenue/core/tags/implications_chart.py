@@ -1,12 +1,12 @@
 from typing import Dict, List, TypedDict
 from itertools import groupby
 
-from flask import g
+from beevenue.flask import g
 from sqlalchemy import select
 
 from ...models import Tag, TagImplication
 from .censorship import Censorship
-from . import tag_name_selector
+from .tags import tag_name_selector
 
 ImplicationNodes = Dict[str, object]
 ImplicationLinks = Dict[str, List[str]]

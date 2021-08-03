@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from beevenue.types import TinyMediumDocument
+from beevenue.document_types import TinyMediumDocument
 import re
 from typing import FrozenSet, Generator, Optional
 
-from flask import g
+from beevenue.flask import g
 
 from . import violations
 from .violations import Violation

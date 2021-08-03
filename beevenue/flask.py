@@ -1,11 +1,9 @@
 from typing import Any, Optional
 
-from flask import Response
-from flask import Request
-from flask import request as flask_request
+from flask import Request, Response, g as flask_g, request as flask_request
 
 from .convert import try_convert_model
-from .types import BeevenueFlask
+from .types import BeevenueFlask, BeevenueG
 
 
 class BeevenueContext:
@@ -30,6 +28,7 @@ class BeevenueRequest(Request):
 
 
 request: BeevenueRequest = flask_request  # type: ignore
+g: BeevenueG = flask_g  # type: ignore
 
 
 class BeevenueFlaskImpl(BeevenueFlask):

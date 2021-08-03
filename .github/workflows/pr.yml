@@ -20,7 +20,7 @@ jobs:
       - name: Run black
         run: black .
       - name: Run mypy
-        run: mypy .
+        run: mypy --install-types --non-interactive
       - name: Run pylint
         run: pylint beevenue
       - name: Create PR (if necessary)

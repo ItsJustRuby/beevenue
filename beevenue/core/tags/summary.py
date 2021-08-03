@@ -1,10 +1,9 @@
 from collections import defaultdict
 from typing import Callable, Dict, List
 
-from flask import g
 from sqlalchemy import select
 
-from beevenue.flask import BeevenueContext
+from beevenue.flask import BeevenueContext, g
 
 from ...models import Tag, TagImplication
 from .tag_summary import TagSummary, TagSummaryEntry

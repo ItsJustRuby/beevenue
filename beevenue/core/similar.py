@@ -2,16 +2,16 @@ from queue import PriorityQueue
 from typing import FrozenSet, List, Set
 
 from sentry_sdk import start_span
-from flask import g
+from beevenue.flask import g
 
 from beevenue.flask import BeevenueContext
 
-from ..types import MediumDocument, TinyMediumDocument
+from ..document_types import TinyMediumDocument
 
 
 def _find_candidates(
     context: BeevenueContext, medium_id: int, target_tag_names: FrozenSet[str]
-) -> Set[MediumDocument]:
+) -> Set[TinyMediumDocument]:
     """Find all media that have *some* similarity to the specified one."""
     with start_span(op="http", description="_find_candidates"):
         candidates = set()

@@ -1,6 +1,6 @@
 from typing import FrozenSet, List, NamedTuple
 
-from ..types import MediumDocument, TinyMediumDocument
+from ..document_types import MediumDocument, TinyMediumDocument
 
 
 class MediumDetail(NamedTuple):

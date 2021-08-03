@@ -1,13 +1,13 @@
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
-from flask import g
+from beevenue.flask import g
 from flask_login import current_user
 from flask_principal import identity_loaded, Permission
 
 from . import notifications
 from .decorators import RequirementDecorator, requires
-from .types import MediumDocument
+from .document_types import TinyMediumDocument
 
 
 class _CanSeeMediumWithRatingNeed:
@@ -69,18 +69,18 @@ def _can_see_rating(
 
 
 def _can_see_cached_medium(
-    maybe_medium: Optional[MediumDocument],
+    maybe_medium: TinyMediumDocument,
 ) -> Permission:
     """Get Permission to see the specified medium."""
-
-    if not maybe_medium:
-        return _allowed
 
     return Permission(_CanSeeMediumWithRatingNeed(maybe_medium.rating))
 
 
 def _can_see_medium(medium_id: int) -> Permission:
-    return _can_see_cached_medium(g.fast.get_tiny(medium_id))
+    tiny = g.fast.get_tiny(medium_id)
+    if not tiny:
+        return _allowed
+    return _can_see_cached_medium(tiny)
 
 
 def _can_see_full_path(full_path: str) -> Permission:

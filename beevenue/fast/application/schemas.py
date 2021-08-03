@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 import capnp  # type: ignore
 
 from beevenue.documents import IndexedMedium, TinyIndexedMedium
-from beevenue.types import MediumDocument, TinyMediumDocument
+from beevenue.document_types import MediumDocument, TinyMediumDocument
 
 from ..types import CacheEntityKind
 

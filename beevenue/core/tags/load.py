@@ -2,10 +2,10 @@ from typing import List, Optional, Set, Tuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from flask import g
+from beevenue.flask import g
 
 from ...models import Medium, Tag
-from . import ValidTagName
+from .tags import ValidTagName
 
 
 def get(name: str) -> Optional[Tag]:

@@ -3,11 +3,11 @@ from typing import List, Sequence, Set
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from flask import g
+from beevenue.flask import g
 
 from beevenue.documents import IndexedMedium
 from beevenue.models import Medium, Tag, TagAlias, TagImplication
-from beevenue.types import MediumDocument
+from beevenue.document_types import MediumDocument
 
 from .data_source import (
     AbstractDataSource,

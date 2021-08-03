@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
+from beevenue.document_types import MediumDocument, TinyMediumDocument
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from enum import Enum, unique
 from typing import Any, Dict, Generic, List, Optional, TypeVar
-
-
-class Cache:
-    """Used for type hinting."""
 
 
 @unique
@@ -96,3 +93,34 @@ class Command(Generic[TAgg]):
     @abstractmethod
     def next(self, cache: SubCache, agg: TAgg) -> TAgg:
         """Continue running this command, aggregating data in 'agg'."""
+
+
+class Cache:
+    """Used for type hinting."""
+
+    def fill(self) -> None:
+        """Complete fill this cache."""
+
+    def get_rating_by_hash(self, for_hash: str) -> str:
+        """Self-explanatory."""
+
+    def get_all_searchable_tag_names(self) -> List[str]:
+        """Self-explanatory."""
+
+    def get_many(self, ids: List[int]) -> List[Any]:
+        """Self-explanatory."""
+
+    def get_medium(self, medium_id: int) -> MediumDocument:
+        """Self-explanatory."""
+
+    def get_many_tiny(self, ids: List[int]) -> List[TinyMediumDocument]:
+        """Self-explanatory."""
+
+    def get_tiny(self, medium_id: int) -> TinyMediumDocument:
+        """Self-explanatory."""
+
+    def get_all_tiny(self) -> List[TinyMediumDocument]:
+        """Self-explanatory."""
+
+    def run(self, *commands: Command) -> None:
+        """Run the specified commands on this cache in sequence."""

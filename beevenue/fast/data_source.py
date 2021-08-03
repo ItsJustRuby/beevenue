@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Set, Tuple
 
-from flask import g
 from sqlalchemy import select
 
+from beevenue.flask import g
 from beevenue.models import TagAlias, TagImplication, Tag
 
 

@@ -4,12 +4,12 @@ from io import BytesIO
 import re
 from typing import Literal, Optional, Tuple, TypedDict, Union, Any
 
-from flask import g
 from sqlalchemy import select
 import magic
 
 from beevenue import paths, signals
 from beevenue.extensions import EXTENSIONS
+from beevenue.flask import g
 from beevenue.io import HelperBytesIO
 
 from ..models import Medium

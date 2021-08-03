@@ -1,6 +1,6 @@
 """Top-level access to the Flask cache."""
 from redis import Redis
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional, Union
 
 from ..types import Query, SubCache
 
@@ -36,12 +36,18 @@ class ApplicationWideCache(SubCache):
 
         result = {}
         for query, raw_bytes in zip(queries, raw_bytes_list):
+            # Should never happen
+            if raw_bytes is None:  # pragma: no cover
+                raise Exception(f"Query {query} failed catastrophically.")
+
             result[query] = SCHEMAS[queries[0].kind].deserialize(raw_bytes)
 
         return result
 
     def set_many(self, values: Dict[Query, Any]) -> None:
-        raw_bytes_dict = {
+        raw_bytes_dict: Mapping[
+            Union[str, bytes], Union[bytes, float, int, str]
+        ] = {
             query.hash: SCHEMAS[query.kind].serialize(value)
             for (query, value) in values.items()
         }

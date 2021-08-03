@@ -1,6 +1,6 @@
 from typing import Any, List, Tuple
 
-from flask import g
+from beevenue.flask import g
 
 from beevenue import signals
 from beevenue.models import Medium

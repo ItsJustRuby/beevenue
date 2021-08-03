@@ -4,14 +4,14 @@ import os
 from typing import List, Optional, Tuple
 import zipfile
 
-from flask import current_app, g
+from flask import current_app
 from sqlalchemy import select, delete as sql_delete
 from sqlalchemy.orm import joinedload
 
 from beevenue import paths, signals
-from beevenue.core.tags import delete_orphans
+from beevenue.core.tags.tags import delete_orphans
 from beevenue.extensions import EXTENSIONS
-from beevenue.flask import BeevenueContext
+from beevenue.flask import g, BeevenueContext
 
 from ..models import Medium, MediumTag, MediumTagAbsence
 from .detail import MediumDetail, create_medium_detail

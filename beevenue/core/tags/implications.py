@@ -1,14 +1,14 @@
 from collections import deque
 from typing import Dict, List, Optional, Tuple
 
-from flask import g
+from beevenue.flask import g
 from sqlalchemy import select, and_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.query import Query
 
 from ...models import Tag, TagImplication
 from ... import signals
-from . import delete_orphans
+from .tags import delete_orphans
 
 
 def _identify_implication_tags(

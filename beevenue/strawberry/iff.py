@@ -1,4 +1,4 @@
-from beevenue.types import TinyMediumDocument
+from beevenue.document_types import TinyMediumDocument
 
 from .common import Iff
 
