@@ -1,4 +1,3 @@
-[![Build Status](https://semaphoreci.com/api/v1/thepadawan/beevenue/branches/master/shields_badge.svg)](https://semaphoreci.com/thepadawan/beevenue)
 [![Coverage Status](https://coveralls.io/repos/github/ItsJustRuby/beevenue/badge.svg?branch=master)](https://coveralls.io/github/ItsJustRuby/beevenue?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/706629dfd2b009b3ca27/maintainability)](https://codeclimate.com/github/ItsJustRuby/beevenue/maintainability)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
