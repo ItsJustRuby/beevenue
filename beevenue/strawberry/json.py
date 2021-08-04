@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import Any, List, Sequence, Union
 
 from .common import (
     HasAnyTagsIn,
@@ -15,7 +15,7 @@ from . import types
 
 
 def _decode_common(
-    obj: types.RuleJson,
+    obj: types.RulePartJson,
 ) -> IffAndThen:
     if obj["type"] == "hasRating":
         return HasRating(obj.get("data", None))  # type: ignore
@@ -29,13 +29,19 @@ def _decode_common(
     raise Exception(f'Unknown rule part type "{obj["type"]}"')
 
 
-def _decode_iff(obj: types.RuleJson) -> Iff:
+def _decode_iffs(obj: types.PartsJson) -> List[Iff]:
+    if not isinstance(obj, list):
+        obj = [obj]
+    return [_decode_iff(i) for i in obj]
+
+
+def _decode_iff(obj: types.RulePartJson) -> Iff:
     if obj["type"] == "all":
         return All()
     return _decode_common(obj)
 
 
-def _decode_then(obj: types.RuleJson) -> Then:
+def _decode_then(obj: types.RulePartJson) -> Then:
     if obj["type"] == "fail":
         return Fail()
     if obj["type"] == "hasAllAbsentOrPresent":
@@ -43,15 +49,17 @@ def _decode_then(obj: types.RuleJson) -> Then:
     return _decode_common(obj)
 
 
-def _decode_thens(thens_obj: List[types.RuleJson]) -> List[Then]:
+def _decode_thens(thens_obj: types.PartsJson) -> List[Then]:
+    if not isinstance(thens_obj, list):
+        thens_obj = [thens_obj]
     return [_decode_then(t) for t in thens_obj]
 
 
-def _decode_rule(obj: types.TopLevelRuleJson) -> Rule:
-    iff = _decode_iff(obj["if"])
+def _decode_rule(obj: types.RuleJson) -> Rule:
+    iffs = _decode_iffs(obj["if"])
     thens = _decode_thens(obj["then"])
 
-    return Rule(iff, thens)
+    return Rule(iffs, thens)
 
 
 def decode_rules_json(json_text: str) -> List[Rule]:
@@ -59,7 +67,7 @@ def decode_rules_json(json_text: str) -> List[Rule]:
     return decode_rules_list(json.loads(json_text))
 
 
-def decode_rules_list(json_list: List[types.TopLevelRuleJson]) -> List[Rule]:
+def decode_rules_list(json_list: List[types.RuleJson]) -> List[Rule]:
     """Decode given list of dictionaries into list of Rules."""
     return [_decode_rule(rule) for rule in json_list]
 
@@ -69,7 +77,7 @@ class RulePartEncoder(json.JSONEncoder):
 
     def default(  # pylint: disable=too-many-return-statements
         self, o: RulePart
-    ) -> types.RuleJson:
+    ) -> types.RulePartJson:
         if isinstance(o, All):
             all_json: types.AllJson = {"type": "all"}
             return all_json
@@ -110,11 +118,18 @@ class RulePartEncoder(json.JSONEncoder):
 class RuleEncoder(json.JSONEncoder):
     """JSON Encoder for `Rule`."""
 
-    def default(self, o: types.TopLevelRuleJson) -> Rule:
+    def _list_or_singleton(
+        self, enc: RulePartEncoder, things: Sequence[RulePart]
+    ) -> Union[types.RulePartJson, List[types.RulePartJson]]:
+        if len(things) == 1:
+            return enc.default(things[0])
+        return [enc.default(t) for t in things]
+
+    def default(self, o: Any) -> types.RuleJson:
         if isinstance(o, Rule):
-            i = RulePartEncoder()
+            enc = RulePartEncoder()
             return {
-                "if": i.default(o.iff),
-                "then": [i.default(t) for t in o.thens],
+                "if": self._list_or_singleton(enc, o.iffs),
+                "then": self._list_or_singleton(enc, o.thens),
             }
         raise Exception(f"Cannot encode rule with type {type(o)}")

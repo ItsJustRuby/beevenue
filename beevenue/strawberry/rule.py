@@ -10,18 +10,19 @@ class Rule:
 
     Consists of one Iff part and one or more Then parts."""
 
-    def __init__(self, iff: Iff, thens: Iterable[Then]):
-        if not iff or not thens:
-            raise Exception("You must configure one IF and at least one THEN")
+    def __init__(self, iffs: Iterable[Iff], thens: Iterable[Then]):
+        if not iffs or not thens:
+            raise Exception("You must configure IFs and THENs!")
 
-        self.iff = iff
-        self.thens = thens
+        self.iffs = list(iffs)
+        self.thens = list(thens)
 
     def violations_for(
         self, medium: TinyMediumDocument
     ) -> Generator[Violation, None, None]:
-        if not self.iff.applies_to(medium):
-            return
+        for iff in self.iffs:
+            if not iff.applies_to(medium):
+                return
 
         for then in self.thens:
             for violation in then.violations_for(medium):
@@ -34,6 +35,8 @@ class Rule:
     def pprint(self) -> str:
         """Pretty-print this rule."""
 
-        result = f"{self.iff.pprint_if()} "
+        result = "If a medium "
+        result += " and ".join([iff.pprint_if() for iff in self.iffs])
+        result += ", then it"
         result += " and ".join([then.pprint_then() for then in self.thens])
         return result

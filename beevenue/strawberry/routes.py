@@ -40,6 +40,7 @@ def get_rules_as_json():  # type: ignore
         )
     )
     res.headers["Content-Disposition"] = "attachment"
+    res.headers["Content-Type"] = "application/json"
     return res
 
 

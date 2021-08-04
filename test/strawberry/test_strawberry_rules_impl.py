@@ -11,12 +11,12 @@ from beevenue.strawberry.rule import Rule
 from beevenue.strawberry.then import Fail, HasAllTagsAbsentOrPresent
 
 rules = [
-    Rule(HasRating("u"), [Fail()]),
-    Rule(HasRating(), [HasAnyTagsLike("x:.*")]),
-    Rule(HasAnyTagsLike("x:.*"), [HasRating("q")]),
-    Rule(HasAnyTagsIn("forbidden"), [HasAnyTagsIn("knowledge")]),
-    Rule(All(), [HasRating()]),
-    Rule(All(), [HasAllTagsAbsentOrPresent("forbidden")]),
+    Rule([HasRating("u")], [Fail()]),
+    Rule([HasRating()], [HasAnyTagsLike("x:.*")]),
+    Rule([HasAnyTagsLike("x:.*")], [HasRating("q")]),
+    Rule([HasAnyTagsIn("forbidden")], [HasAnyTagsIn("knowledge")]),
+    Rule([All()], [HasRating()]),
+    Rule([All()], [HasAllTagsAbsentOrPresent("forbidden")]),
 ]
 
 

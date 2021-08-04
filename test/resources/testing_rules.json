@@ -4,14 +4,12 @@
             "data": "e",
             "type": "hasRating"
         },
-        "then": [
-            {
+        "then": {
                 "data": [
                     "A"
                 ],
                 "type": "hasAnyTagsIn"
-            }
-        ]
+        }
     },
     {
         "if": {
@@ -84,6 +82,26 @@
         "if": {
             "type": "all"
         },
+        "then": [
+            {
+                "data": [
+                    "c:tinkerbell"
+                ],
+                "type": "hasAllAbsentOrPresent"
+            }
+        ]
+    },
+    {
+        "if": [{
+            "data": [
+                "y:.*"
+            ],
+            "type": "hasAnyTagsLike"
+        },
+        {
+            "data": "s",
+            "type": "hasRating"
+        }],
         "then": [
             {
                 "data": [

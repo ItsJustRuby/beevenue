@@ -118,7 +118,7 @@ class HasAnyTagsLike(HasAnyTagsIffAndThen):
         return ", ".join(self.regexes)
 
     def pprint_if(self) -> str:
-        return f"Any medium with a tag like '{self._tags_as_str}'"
+        return f"has a tag like '{self._tags_as_str}'"
 
     def pprint_then(self) -> str:
         return f"should have a tag like '{self._tags_as_str}'."
@@ -138,7 +138,7 @@ class HasAnyTagsIn(HasAnyTagsIffAndThen):
         return ", ".join(self.tag_names)
 
     def pprint_if(self) -> str:
-        return f"Any medium with a tag in '{self._tags_as_str}'"
+        return f"has a tag in '{self._tags_as_str}'"
 
     def pprint_then(self) -> str:
         return f"should have a tag in '{self._tags_as_str}'."
@@ -180,4 +180,4 @@ class HasRating(Iff, Then):
         return f"should have {self._rating_str}."
 
     def pprint_if(self) -> str:
-        return f"Any medium with {self._rating_str}"
+        return f"has {self._rating_str}"

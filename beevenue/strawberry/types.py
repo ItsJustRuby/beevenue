@@ -34,7 +34,7 @@ class HasAnyTagsLikeJson(TypedDict):
     data: List[str]
 
 
-RuleJson = Union[
+RulePartJson = Union[
     AllJson,
     FailJson,
     HasAnyRatingJson,
@@ -44,7 +44,6 @@ RuleJson = Union[
     HasAnyTagsLikeJson,
 ]
 
+PartsJson = Union[RulePartJson, List[RulePartJson]]
 
-TopLevelRuleJson = TypedDict(
-    "TopLevelRuleJson", {"if": RuleJson, "then": List[RuleJson]}
-)
+RuleJson = TypedDict("RuleJson", {"if": PartsJson, "then": PartsJson})

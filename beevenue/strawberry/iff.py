@@ -10,4 +10,4 @@ class All(Iff):
         return True
 
     def pprint_if(self) -> str:
-        return "Any medium"
+        return "exists"

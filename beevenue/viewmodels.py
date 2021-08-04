@@ -21,12 +21,14 @@ class _MediumDocumentSchema(Schema):
     mime_type = fields.String(data_key="mimeType")
 
     def extract_innate_tags(self, obj: MediumDocument) -> List[str]:
-        return [  # pylint: disable=unnecessary-comprehension
-            t for t in obj.innate_tag_names
-        ]
+        return sorted(
+            [  # pylint: disable=unnecessary-comprehension
+                t for t in obj.innate_tag_names
+            ]
+        )
 
     def extract_absent_tags(self, obj: MediumDocument) -> List[str]:
-        return list(obj.absent_tag_names)
+        return sorted(list(obj.absent_tag_names))
 
 
 class _MediumDocumentDetailSchema(_MediumDocumentSchema):
