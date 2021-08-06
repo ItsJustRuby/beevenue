@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Tuple, Union
 
 from flask import current_app
 from sentry_sdk import start_span
@@ -42,14 +42,15 @@ def get_violations(medium_id: int) -> ViolationsViewModel:
     return ViolationsViewModel(violations)
 
 
-MediaGenerator = Generator[TinyMediumDocument, None, None]
+GeneratorResult = Tuple[TinyMediumDocument, bool]
+MediaGenerator = Generator[GeneratorResult, None, None]
 
 
 def _nsfw_generator() -> MediaGenerator:
     all_media = g.fast.get_all_tiny()
     random.shuffle(all_media)
     for medium in all_media:
-        yield medium
+        yield medium, True
 
 
 def _sfw_generator() -> MediaGenerator:
@@ -64,10 +65,11 @@ def _sfw_generator() -> MediaGenerator:
         media_by_rating[medium.rating].append(medium)
 
     for rating in sorted_ratings:
+        is_visible = rating == "s"
         current_media = media_by_rating[rating]
         random.shuffle(current_media)
         for medium in current_media:
-            yield medium
+            yield medium, is_visible
 
 
 def _generate_random_media() -> MediaGenerator:
@@ -77,13 +79,21 @@ def _generate_random_media() -> MediaGenerator:
     return _nsfw_generator()
 
 
-def random_rule_violation() -> Optional[Tuple[int, Rule]]:
+RandomViolation = Tuple[int, None]
+Notification = Tuple[None, str]
+NoViolationsLeft = Tuple[None, None]
+RandomRuleViolation = Union[RandomViolation, Notification, NoViolationsLeft]
+
+
+def random_rule_violation() -> RandomRuleViolation:
     rules = get_rules()
     random.shuffle(rules)
 
-    for medium in _generate_random_media():
+    for medium, is_visible in _generate_random_media():
         for rule in rules:
             if rule.is_violated_by(medium):
-                return (medium.medium_id, rule)
+                if is_visible:
+                    return medium.medium_id, None
+                return None, "There are no more SFW rule violations."
 
-    return None
+    return None, None

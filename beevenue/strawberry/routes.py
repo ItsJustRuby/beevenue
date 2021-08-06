@@ -1,9 +1,10 @@
-from typing import Dict, List
+from typing import List
 
 from flask import Blueprint, current_app, make_response
 from flask.json import dumps
 
 from beevenue.flask import request
+from beevenue import notifications
 
 from .. import permissions
 from .get import get_rules, get_violations, random_rule_violation
@@ -18,14 +19,6 @@ def _persist(rules_list: List[Rule]) -> None:
     rules_file_path = current_app.config["BEEVENUE_RULES_FILE"]
     with open(rules_file_path, "w") as rules_file:
         rules_file.write(res)
-
-
-def _pretty_print(rule_breaks: Dict[int, List[Rule]]) -> Dict[int, List[str]]:
-    json_helper = {}
-    for medium_id, broken_rules in rule_breaks.items():
-        json_helper[medium_id] = [r.pprint() for r in broken_rules]
-
-    return json_helper
 
 
 @bp.route("/rules")
@@ -87,9 +80,13 @@ def get_missing_tags_for_post(medium_id: int):  # type: ignore
 @bp.route("/tags/missing/any", methods=["GET", "OPTION"])
 @permissions.is_owner
 def get_missing_tags_any():  # type: ignore
-    maybe_violation = random_rule_violation()
-    if not maybe_violation:
-        return _pretty_print({})
+    violating_medium_id, notification = random_rule_violation()
 
-    medium_id, rule = maybe_violation
-    return _pretty_print({medium_id: [rule]})
+    if not violating_medium_id and not notification:
+        # No violations left
+        return {}
+
+    if notification:
+        return notifications.simple_warning(notification)
+
+    return {"id": violating_medium_id}
