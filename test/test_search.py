@@ -64,6 +64,19 @@ def test_no_results_has_valid_schema(client, asAdmin):
     assert res.get_json()["items"] == []
 
 
+def test_search_coverage_spam_exact_page_size(client, asAdmin, nsfw):
+    total_medium_count = 16
+
+    res = _when_searching(
+        client,
+        "-tagThatNoMediumHasSoAllOfThemAreFound",
+        page_size=total_medium_count,
+    )
+    assert res.status_code == 200
+    result = res.get_json()
+    assert len(result["items"]) >= 1
+
+
 def test_search_with_only_negative_terms_succeeds(client, asUser):
     res = _when_searching(client, "-C")
     assert res.status_code == 200
@@ -133,11 +146,11 @@ def test_search_with_alias_term_succeeds(client, asUser):
 
 
 def test_search_with_rating_term_succeeds(client, asAdmin, nsfw):
-    res = _when_searching(client, "rating:s", page_size=3)
+    res = _when_searching(client, "rating:s", page_size=20)
     assert res.status_code == 200
     result = res.get_json()
     print(result)
-    assert len(result["items"]) == 3
+    assert len(result["items"]) == 14
 
 
 def test_search_with_counting_term_succeeds(client, asAdmin, nsfw):

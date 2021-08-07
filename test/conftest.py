@@ -3,10 +3,10 @@ import logging
 import os
 import re
 import shutil
-import sqlite3
-import tempfile
+from flask_sqlalchemy import SQLAlchemy
 
 import pytest
+from sqlalchemy.sql.expression import text
 
 from beevenue.beevenue import get_application
 
@@ -29,16 +29,14 @@ def _medium_file(fname):
     return _file("media", fname)
 
 
-def _run_testing_sql(temp_path):
+def _run_testing_sql(db: SQLAlchemy):
     """Fill database at given path with initial data."""
     with open(_resource("testing.sql"), "rb") as f:
         TESTING_SQL = f.read().decode("utf-8")
 
-    escaped_temp_path = temp_path.replace("\\", "\\\\")
-    conn = sqlite3.connect(escaped_temp_path)
-    conn.executescript(TESTING_SQL)
-    conn.commit()
-    conn.close()
+    session = db.create_scoped_session()
+    session.execute(text(TESTING_SQL))
+    session.commit()
 
 
 def _ensure_folder(fname):
@@ -67,34 +65,29 @@ def _client():
     """Set up the testing client."""
     global RAN_ONCE
 
-    temp_fd, temp_path = tempfile.mkstemp(suffix=".db")
-    temp_nice_path = os.path.abspath(temp_path)
-
-    connection_string = f"sqlite:///{temp_nice_path}"
-
-    def extra_config(application):
-        """Set specific testing-only flags on the testee."""
-        application.config["SQLALCHEMY_DATABASE_URI"] = connection_string
-
-    def fill_db(db):
+    def fill_db(app, db):
         """Create schema and fill the SQL database with initial data."""
-        global SQLITE_PROTOTYPE
 
-        if not RAN_ONCE:
-            db.create_all()
+        session = db.create_scoped_session()
 
-            with open(temp_path, "rb") as f:
-                SQLITE_PROTOTYPE = f.read()
-        else:
-            print("Overwriting DB with prototype")
-            with open(temp_nice_path, "wb") as target:
-                target.seek(0)
-                target.write(SQLITE_PROTOTYPE)
-                target.truncate()
+        session.connection().connection.set_isolation_level(0)
+        session.execute(
+            text(
+                """
+                DROP SCHEMA public CASCADE;
+                CREATE SCHEMA public;
+                GRANT ALL ON SCHEMA public TO testing;
+                """
+            )
+        )
+        session.commit()
+        session.connection().connection.set_isolation_level(1)
 
-        _run_testing_sql(temp_nice_path)
+        db.create_all()
+        _run_testing_sql(db)
+        app.testing_db = db
 
-    app = get_application(extra_config, fill_db)
+    app = get_application(fill_db)
 
     if not RAN_ONCE:
         _ensure_folder("media")
@@ -110,35 +103,10 @@ def _client():
     c = app.test_client()
     c.app_under_test = app
 
-    def sql_debug(raw_query_text):
-        escaped_temp_path = temp_path.replace("\\", "\\\\")
-        conn = sqlite3.connect(escaped_temp_path)
-        for row in conn.execute(raw_query_text):
-            print(row)
-        conn.close()
-
-    c.sql_debug = sql_debug
-
-    # Example code to run some arbitrary SQL query - e.g. to set
-    # currently hardcoded constants like "what's the Id of the video medium"
-    # dynamically:
-    #
-    # escaped_temp_path = temp_nice_path.replace("\\", "\\\\")
-    # conn = sqlite3.connect(escaped_temp_path)
-    # cur = conn.cursor()
-    # cur.execute("SELECT * FROM medium")
-    # rows = cur.fetchall()
-    # c._rows = rows
-
-    # conn.close()
-
     yield c
 
     with open(_resource("testing_rules.json"), "w") as rules_file:
         rules_file.write(rules_file_contents)
-
-    os.close(temp_fd)
-    os.unlink(temp_path)
 
     RAN_ONCE = True
 

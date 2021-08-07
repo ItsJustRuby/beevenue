@@ -25,20 +25,18 @@ from .fast.init import init_app as fast_init_app
 from .strawberry.init import init_app as strawberry_init_app
 
 
-def _nop(_: Any) -> None:
+def _nop(*_: Any) -> None:
     """Do nothing, intentionally."""
 
 
 def get_application(
-    extra_config: Callable[[BeevenueFlask], None] = _nop,
-    fill_db: Callable[[SQLAlchemy], None] = _nop,
+    fill_db: Callable[[BeevenueFlask, SQLAlchemy], None] = _nop,
 ) -> BeevenueFlask:
     """Construct and return uWSGI application object."""
     logging.basicConfig(level=logging.DEBUG)
 
     application = BeevenueFlaskImpl("beevenue-main", "0.0.0.0", 7000)
     application.config.from_envvar("BEEVENUE_CONFIG_FILE")
-    extra_config(application)
 
     CORS(
         application,
@@ -75,7 +73,7 @@ def get_application(
 
         # Only used for testing - needs to happen after DB is setup,
         # but before filling caches from DB.
-        fill_db(db)
+        fill_db(application, db)
 
         fast_init_app(application)
 

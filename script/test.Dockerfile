@@ -7,4 +7,5 @@ USER beevenue:beevenue
 
 RUN pip install -r requirements.cionly.txt
 
+COPY --chown=beevenue:beevenue . /beevenue
 ENTRYPOINT [ "bash", "script/coverage.sh" ]

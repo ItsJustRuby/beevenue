@@ -1,7 +1,7 @@
 DEBUG = True
 TESTING = True
 
-SQLALCHEMY_DATABASE_URI = "POTATO"  # is being set at initialization time
+SQLALCHEMY_DATABASE_URI = "postgresql://testing:testing@pg:5432/testing"
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 COMMIT_ID = "TESTING"

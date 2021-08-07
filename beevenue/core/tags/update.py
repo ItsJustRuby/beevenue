@@ -1,11 +1,11 @@
 from typing import Tuple, Union, Optional
 
-from sqlalchemy import select, update as sql_update
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from beevenue.flask import g
 
 from ... import signals
-from ...models import Tag, MediumTag
+from ...models import Tag
 
 
 def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
@@ -15,7 +15,6 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
         return "You must specify a new name", None
 
     old_name = old_tag.tag
-    old_id = old_tag.id
 
     new_tags = (
         g.db.execute(select(Tag).filter(Tag.tag == new_name)).scalars().all()
@@ -32,24 +31,7 @@ def _rename(old_tag: Tag, new_name: str) -> Tuple[str, Optional[Tag]]:
         )
         return "Successfully renamed tag", old_tag
 
-    new_tag = new_tags[0]
-
-    # if new_tag does exist, UPDATE all medium tags
-    # to reference new_tag instead of old_tag and remove old_tag
-    g.db.delete(old_tag)
-    g.db.execute(
-        sql_update(MediumTag)
-        .where(MediumTag.tag_id == old_id)
-        .values(tag_id=new_tag.id)
-    )
-
-    signals.tag_renamed.send(
-        (
-            old_name,
-            new_name,
-        )
-    )
-    return "Successfully renamed tag", new_tag
+    return "A tag with that name already exists!", None
 
 
 def update(tag_name: str, new_model: dict) -> Tuple[bool, Union[str, Tag]]:

@@ -44,6 +44,6 @@ def test_cant_update_tag_rating_to_something_weird(client, asAdmin, rating):
     assert res.status_code == 400
 
 
-def test_can_merge_current_tag_as_admin(client, asAdmin):
+def test_cant_merge_tags(client, asAdmin):
     res = client.patch("/tag/A", json={"tag": "B"})
-    assert res.status_code == 200
+    assert res.status_code == 400

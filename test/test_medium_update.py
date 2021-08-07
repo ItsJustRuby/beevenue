@@ -20,6 +20,17 @@ def test_can_update_medium_as_admin(client, asAdmin):
     assert res.status_code == 200
 
 
+def test_can_update_really_tricky_medium(client, asAdmin):
+    old_medium = client.get("/medium/15").get_json()
+    print(old_medium)
+    old_medium["tags"] = []
+    print(old_medium)
+
+    res = client.patch("/medium/15/metadata", json=old_medium)
+    assert res.status_code == 200
+    print(res.get_json())
+
+
 def test_cant_update_medium_to_unknown_rating(client, asAdmin, nsfw):
     res = client.get("/medium/3")
     current_rating = res.get_json()["rating"]

@@ -1,5 +1,15 @@
 version: "3"
 services:
+  pg:
+    image: postgres:13.3
+    environment:
+      - POSTGRES_USER=testing
+      - POSTGRES_PASSWORD=testing
+      - PGDATA=/pgtmpfs
+    ports:
+      - "25432:5432"
+    tmpfs:
+      - /pgtmpfs
   redis:
     build:
       context: .
@@ -20,4 +30,5 @@ services:
       - .git:/beevenue/.git
     depends_on:
       - app
+      - pg
       - redis

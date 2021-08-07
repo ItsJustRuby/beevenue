@@ -91,11 +91,7 @@ def _paginate(ids: List[int]) -> Pagination[int]:
     page_size = int(page_size_arg)
 
     page_number = max(page_number, 1)
-
-    if page_size < 1:
-        return Pagination(
-            items=[], page_count=1, page_number=page_number, page_size=page_size
-        )
+    page_size = max(min(page_size, 100), 10)
 
     page_count = len(ids) // page_size
     if (len(ids) % page_size) != 0:
