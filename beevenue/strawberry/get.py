@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Generator, List, Tuple, Union
+from typing import Dict, Generator, List, Tuple, TypedDict, Union
 
 from flask import current_app
 from sentry_sdk import start_span
@@ -40,6 +40,35 @@ def get_violations(medium_id: int) -> ViolationsViewModel:
             )
 
     return ViolationsViewModel(violations)
+
+
+class SummaryRule(TypedDict):
+    """Viewmodel holding a rule and how well it is adhered to."""
+
+    definition: Rule
+    adherence: float
+
+
+def summary() -> List[SummaryRule]:
+    result = []
+
+    for rule in get_rules():
+        total_count = 0
+        adherent_count = 0
+        for medium, _ in _nsfw_generator():
+            total_count += 1
+            if not rule.is_violated_by(medium):
+                adherent_count += 1
+        result.append(
+            SummaryRule(
+                {
+                    "definition": rule,
+                    "adherence": float(adherent_count) / total_count,
+                }
+            )
+        )
+
+    return result
 
 
 GeneratorResult = Tuple[TinyMediumDocument, bool]

@@ -22,7 +22,7 @@ INVALID_RULES_JSONS = [
 
 
 def test_get_rules(client, asAdmin):
-    r = client.get("/rules")
+    r = client.get("/rules/summary")
     assert r.status_code == 200
 
 

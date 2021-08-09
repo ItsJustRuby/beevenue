@@ -1,13 +1,13 @@
 from typing import List
 
 from flask import Blueprint, current_app, make_response
-from flask.json import dumps
+from flask.json import dumps, jsonify
 
 from beevenue.flask import request
 from beevenue import notifications
 
 from .. import permissions
-from .get import get_rules, get_violations, random_rule_violation
+from .get import get_rules, get_violations, random_rule_violation, summary
 from .json import decode_rules_list
 from .rule import Rule
 
@@ -21,7 +21,6 @@ def _persist(rules_list: List[Rule]) -> None:
         rules_file.write(res)
 
 
-@bp.route("/rules")
 @bp.route("/rules/rules.json")
 @permissions.is_owner
 def get_rules_as_json():  # type: ignore
@@ -35,6 +34,12 @@ def get_rules_as_json():  # type: ignore
     res.headers["Content-Disposition"] = "attachment"
     res.headers["Content-Type"] = "application/json"
     return res
+
+
+@bp.route("/rules/summary")
+@permissions.is_owner
+def rule_summary():  # type: ignore
+    return jsonify(summary())
 
 
 @bp.route("/rules/<int:rule_index>", methods=["DELETE"])
