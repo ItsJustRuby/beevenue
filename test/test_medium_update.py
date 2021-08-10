@@ -22,13 +22,37 @@ def test_can_update_medium_as_admin(client, asAdmin):
 
 def test_can_update_really_tricky_medium(client, asAdmin):
     old_medium = client.get("/medium/15").get_json()
-    print(old_medium)
     old_medium["tags"] = []
-    print(old_medium)
+
+    res = client.get("/tags")
+    assert res.status_code == 200
+    old_tags = res.get_json()["tags"]
+    old_tag_count = len(old_tags)
+    print(f"Tag count before test: {old_tag_count}")
 
     res = client.patch("/medium/15/metadata", json=old_medium)
     assert res.status_code == 200
     print(res.get_json())
+
+    tags_we_expect_gone = [
+        "onlyImpliesSomethingElse",
+        "onlyImpliedBySomethingElse",
+        "onlyImpliedBySomethingImplied",
+    ]
+
+    for t in tags_we_expect_gone:
+        res = client.get(f"/tag/{t}")
+        assert res.status_code == 404
+        print(res.get_json())
+
+    res = client.get("/tags")
+    assert res.status_code == 200
+    new_tags = res.get_json()["tags"]
+    new_tag_count = len(new_tags)
+    print(f"Tag count after test: {new_tag_count}")
+    diff = {t["tag"] for t in old_tags} - {t["tag"] for t in new_tags}
+    print(f"Removed tags: {diff}")
+    assert new_tag_count == old_tag_count - len(tags_we_expect_gone)
 
 
 def test_cant_update_medium_to_unknown_rating(client, asAdmin, nsfw):

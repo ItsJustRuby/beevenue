@@ -21,6 +21,7 @@ INSERT INTO public."tag" VALUES (5002, 'y:x', 's');
 
 INSERT INTO public."tag" VALUES (6000, 'onlyImpliesSomethingElse', 's');
 INSERT INTO public."tag" VALUES (6001, 'onlyImpliedBySomethingElse', 's');
+INSERT INTO public."tag" VALUES (6002, 'onlyImpliedBySomethingImplied', 's');
 ALTER SEQUENCE public."tag_id_seq" RESTART WITH 10000;
 
 INSERT INTO public."tagImplication" VALUES (2001, 2000);
@@ -28,6 +29,7 @@ INSERT INTO public."tagImplication" VALUES (2002, 2000);
 INSERT INTO public."tagImplication" VALUES (4001, 4002);
 
 INSERT INTO public."tagImplication" VALUES (6000, 6001);
+INSERT INTO public."tagImplication" VALUES (6001, 6002);
 
 INSERT INTO public."tagAlias" VALUES (1, 2002, 'c:pete');
 ALTER SEQUENCE public."tagAlias_id_seq" RESTART WITH 2;
@@ -56,6 +58,8 @@ ALTER SEQUENCE public."medium_id_seq" RESTART WITH 17;
 -- medium_id, tag_id
 INSERT INTO public."medium_tag" VALUES (1, 1000);
 INSERT INTO public."medium_tag" VALUES (1, 1001);
+INSERT INTO public."medium_tag" VALUES (1, 100);
+INSERT INTO public."medium_tag" VALUES (1, 3001);
 
 INSERT INTO public."medium_tag" VALUES (2, 1001);
 INSERT INTO public."medium_tag" VALUES (2, 1002);
@@ -77,7 +81,8 @@ INSERT INTO public."medium_tag" VALUES (11, 4001);
 
 INSERT INTO public."medium_tag" VALUES (14, 5002);
 
--- Edge case: This medium has a tag which no other medium has (6000), and which implies another tag (6001).
+-- Edge case: This medium has a tag which no other medium has (6000),
+-- and which implies another tag (6001) which implies another tag (6002).
 INSERT INTO public."medium_tag" VALUES (15, 6000);
 
 INSERT INTO public."mediumTagAbsence" VALUES (1, 13, 1000); -- Medium 13, "A" absent

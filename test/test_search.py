@@ -117,7 +117,7 @@ def test_search_with_category_term_succeeds(client, asUser, q):
     assert res.status_code == 200
     result = res.get_json()
     print(result)
-    assert len(result["items"]) == 1
+    assert len(result["items"]) == 2
 
 
 @pytest.mark.parametrize("q", identical_counting_search_terms)
@@ -126,7 +126,7 @@ def test_search_colon_is_treated_the_same_as_equals(client, asUser, q):
     assert res.status_code == 200
     result = res.get_json()
     print(result)
-    assert len(result["items"]) == 2
+    assert len(result["items"]) == 1
 
 
 def test_search_with_combined_terms_succeeds(client, asUser):
@@ -174,7 +174,7 @@ def test_search_with_counting_term3_succeeds(client, asAdmin, nsfw):
     assert res.status_code == 200
     result = res.get_json()
     print(result)
-    assert len(result["items"]) == 1
+    assert len(result["items"]) == 2
 
 
 def test_search_with_counting_term4_succeeds(client, asAdmin, nsfw):

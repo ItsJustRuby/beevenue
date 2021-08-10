@@ -3,9 +3,6 @@ def test_can_delete_medium_as_admin(client, asAdmin):
     assert res.status_code == 200
 
 
-# Note: This test doesn't really do anything since sqlite does not enforce
-# foreign keys during testing.
-# This does test the coherency of redis, though!
 def test_can_delete_medium_even_if_it_still_has_tags(client, asAdmin):
     res = client.delete("/medium/4")
     assert res.status_code == 200

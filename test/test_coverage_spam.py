@@ -1,4 +1,5 @@
 # These tests are just here to raise coverage the last few percents.
+from beevenue.strawberry.common import HasAnyTagsLike
 import os
 from pathlib import Path
 
@@ -121,3 +122,9 @@ def test_pagination_internals():
 def test_notacache_internals():
     not_a_cache = NotACache()
     assert not_a_cache.delete([]) == 0
+
+
+def test_rule_part_with_valid_regex_but_no_tags_never_violates():
+    rule_part = HasAnyTagsLike("doesNotExist.*")
+    rule_part.tag_names = []
+    assert next(rule_part.violations_for({}), None) == None
