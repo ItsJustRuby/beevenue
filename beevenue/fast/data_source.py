@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Set, Tuple
+from typing import Dict, FrozenSet, Iterable, Set, Tuple
 
 from sqlalchemy import select
 
@@ -21,43 +21,53 @@ class AbstractDataSource(ABC):
         """Returns ids and names of tags implied by the given tag_ids."""
 
 
-class SingleLoadDataSource(AbstractDataSource):
+class MultiLoadDataSource(AbstractDataSource):
     """Data holder for fully loading a single medium's tag metadata."""
 
-    def __init__(self) -> None:
+    def __init__(self, all_tag_ids: FrozenSet[int]) -> None:
         self.session = g.db
+        tag_aliases = self.session.execute(
+            select(TagAlias.tag_id, TagAlias.alias).filter(
+                TagAlias.tag_id.in_(all_tag_ids)
+            )
+        ).all()
+        self.tag_alias_dict = {t.tag_id: t.alias for t in tag_aliases}
+
+        implications = self.session.execute(
+            select(
+                TagImplication.implying_tag_id,
+                TagImplication.implied_tag_id,
+            ).filter(TagImplication.implying_tag_id.in_(all_tag_ids))
+        ).all()
+        self.implication_dict = {
+            ti.implying_tag_id: ti.implied_tag_id for ti in implications
+        }
+
+        implied_tag_names = self.session.execute(
+            select(Tag.id, Tag.tag).filter(
+                Tag.id.in_(list(self.implication_dict.values()))
+            )
+        ).all()
+        self.tag_name_dict = {t.id: t.tag for t in implied_tag_names}
 
     def alias_names(self, tag_ids: Iterable[int]) -> Set[str]:
-        tag_aliases = (
-            self.session.execute(
-                select(TagAlias.alias).filter(TagAlias.tag_id.in_(tag_ids))
-            )
-            .scalars()
-            .all()
-        )
-
-        return set(tag_aliases)
+        result = set()
+        for tag_id in tag_ids:
+            if tag_id in self.tag_alias_dict:
+                result.add(self.tag_alias_dict[tag_id])
+        return result
 
     def implied(self, tag_ids: Iterable[int]) -> Tuple[Set[int], Set[str]]:
-        implied_tag_ids = (
-            self.session.execute(
-                select(TagImplication.implied_tag_id).filter(
-                    TagImplication.implying_tag_id.in_(tag_ids)
-                )
-            )
-            .scalars()
-            .all()
-        )
+        implied_ids = set()
+        for tag_id in tag_ids:
+            if tag_id in self.implication_dict:
+                implied_ids.add(self.implication_dict[tag_id])
 
-        implied_tag_names = (
-            self.session.execute(
-                select(Tag.tag).filter(Tag.id.in_(implied_tag_ids))
-            )
-            .scalars()
-            .all()
-        )
+        implied_names = set()
+        for implied_id in implied_ids:
+            implied_names.add(self.tag_name_dict[implied_id])
 
-        return set(implied_tag_ids), set(implied_tag_names)
+        return implied_ids, implied_names
 
 
 class FullLoadDataSource(AbstractDataSource):

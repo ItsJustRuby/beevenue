@@ -18,7 +18,7 @@ from beevenue.models import Tag, TagAlias
 from beevenue.document_types import MediumDocument, TinyMediumDocument
 
 from .types import CacheEntityKind, Command, Query, SubCache
-from .load import full_load, single_load
+from .load import full_load, multi_load
 
 
 class RefillCommandAggregator(NamedTuple):
@@ -109,9 +109,12 @@ class RefreshMediumCommand(Command[RefreshMediumAggregator]):
         fulls = []
         tinies: List[TinyIndexedMedium] = []
 
+        loaded_media = multi_load([t[0] for t in self.tuples])
+        loaded_media_dict = {m.medium_id: m for m in loaded_media}
+
         for medium_id, old_hash in self.tuples:
             # We are responsible for loading the medium in document form.
-            refreshed = single_load(medium_id)
+            refreshed = loaded_media_dict[medium_id]
 
             old_hashes.append(old_hash)
             fulls.append(refreshed)

@@ -12,7 +12,7 @@ from beevenue.document_types import MediumDocument
 from .data_source import (
     AbstractDataSource,
     FullLoadDataSource,
-    SingleLoadDataSource,
+    MultiLoadDataSource,
 )
 
 
@@ -66,15 +66,21 @@ def _create_indexed_medium(
     )
 
 
-def single_load(medium_id: int) -> MediumDocument:
-    matching_medium = (
+def multi_load(medium_ids: List[int]) -> List[MediumDocument]:
+    matching_media = (
         g.db.query(Medium)
         .options(joinedload(Medium.tags), joinedload(Medium.absent_tags))
-        .filter_by(id=medium_id)
-        .first()
+        .filter(Medium.id.in_(medium_ids))
+        .all()
     )
 
-    return _create_indexed_medium(SingleLoadDataSource(), matching_medium)
+    relevant_tag_ids = set()
+    for medium in matching_media:
+        relevant_tag_ids |= {t.id for t in medium.tags}
+
+    data_source = MultiLoadDataSource(frozenset(relevant_tag_ids))
+
+    return [_create_indexed_medium(data_source, m) for m in matching_media]
 
 
 def full_load() -> Sequence[MediumDocument]:
