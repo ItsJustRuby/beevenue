@@ -1,3 +1,4 @@
+import re
 from typing import Iterable, Optional, Set, Tuple
 
 from sqlalchemy.orm import joinedload
@@ -8,10 +9,13 @@ from ... import signals
 from .tags import ValidTagName, validate
 from .load import load
 
+RATING_TAGLIKE_REGEX = re.compile("^rating:([sqe])$")
+
 
 def _add_all(
     is_absent: bool,
     trimmed_tag_names: Iterable[ValidTagName],
+    rating_taglike: Optional[str],
     tags: Set[Tag],
     media: Set[Medium],
 ) -> int:
@@ -35,6 +39,10 @@ def _add_all(
                 target.append(tag)
                 added_count += 1
 
+    if rating_taglike:
+        for medium in media:
+            medium.rating = rating_taglike
+
     g.db.commit()
 
     # In this method, we have either added present or absent tags
@@ -48,6 +56,22 @@ def add_batch(
     is_absent: bool, tag_names: Iterable[str], medium_ids: Set[int]
 ) -> Optional[int]:
 
+    rating_taglikes = dict()
+
+    for tag_name in tag_names:
+        match = RATING_TAGLIKE_REGEX.match(tag_name)
+        if match:
+            rating_taglikes[tag_name] = match.group(1)
+
+    if len(rating_taglikes.keys()) > 1:
+        return None
+
+    rating_taglike = None
+    if len(rating_taglikes.keys()) == 1:
+        rating_taglike = next(iter(rating_taglikes.values()))
+
+    tag_names = set(tag_names) - rating_taglikes.keys()
+
     trimmed_tag_names = validate(tag_names)
 
     loaded = load(trimmed_tag_names, medium_ids)
@@ -55,7 +79,9 @@ def add_batch(
     if not loaded:
         return None
 
-    added_count = _add_all(is_absent, trimmed_tag_names, *loaded)
+    added_count = _add_all(
+        is_absent, trimmed_tag_names, rating_taglike, *loaded
+    )
     return added_count
 
 

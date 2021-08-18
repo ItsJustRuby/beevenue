@@ -31,22 +31,7 @@ def get(name: str) -> Optional[Tag]:
 def load(
     trimmed_tag_names: List[ValidTagName], medium_ids: Set[int]
 ) -> Optional[Tuple[Set[Tag], Set[Medium]]]:
-    # User submitted no non-empty tag names
-    if not trimmed_tag_names:
-        return None
-
     if not medium_ids:
-        return None
-
-    all_tags = (
-        g.db.execute(select(Tag).filter(Tag.tag.in_(trimmed_tag_names)))
-        .scalars()
-        .all()
-    )
-
-    # User submitted only tags that don't exist yet.
-    # Note: add_batch does not autocreate tags.
-    if not all_tags:
         return None
 
     all_media = (
@@ -58,5 +43,11 @@ def load(
     # User submitted only ids for nonexistant media
     if not all_media:
         return None
+
+    all_tags = (
+        g.db.execute(select(Tag).filter(Tag.tag.in_(trimmed_tag_names)))
+        .scalars()
+        .all()
+    )
 
     return all_tags, all_media

@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_tag_batch_update(client, asAdmin):
     res = client.post(
         "/tags/batch",
@@ -14,6 +17,76 @@ def test_tag_batch_update(client, asAdmin):
     tags = res.get_json()["tags"]
     assert "C" in tags
     assert "tobecensored" in tags
+
+
+def test_tag_batch_rating_change(client, asAdmin, nsfw):
+    res = client.post(
+        "/tags/batch",
+        json={
+            "isAbsent": False,
+            "tags": ["rating:e"],
+            "mediumIds": [1],
+        },
+    )
+    assert res.status_code == 200
+
+    res = client.get("/medium/1")
+    assert res.status_code == 200
+    assert res.get_json()["rating"] == "e"
+
+
+@pytest.mark.parametrize("rating", ["ent", "squeal", "fridge"])
+def test_tag_batch_rating_change_does_nothing_for_weird_rating(
+    client, rating, asAdmin, nsfw
+):
+    res = client.post(
+        "/tags/batch",
+        json={
+            "isAbsent": False,
+            "tags": [f"rating:{rating}"],
+            "mediumIds": [1],
+        },
+    )
+    assert res.status_code == 200
+
+    res = client.get("/medium/1")
+    assert res.status_code == 200
+    assert res.get_json()["rating"] == "s"
+
+
+def test_tag_batch_rating_change_and_tag_add_at_once(client, asAdmin, nsfw):
+    res = client.post(
+        "/tags/batch",
+        json={
+            "isAbsent": False,
+            "tags": ["rating:e", "C"],
+            "mediumIds": [1],
+        },
+    )
+    assert res.status_code == 200
+
+    res = client.get("/medium/1")
+    assert res.status_code == 200
+    assert res.get_json()["rating"] == "e"
+    assert "C" in res.get_json()["tags"]
+
+
+def test_tag_batch_rating_change_with_multiple_ratings_invalid(
+    client, asAdmin, nsfw
+):
+    res = client.post(
+        "/tags/batch",
+        json={
+            "isAbsent": False,
+            "tags": ["rating:e", "rating:q"],
+            "mediumIds": [1],
+        },
+    )
+    assert res.status_code == 200
+
+    res = client.get("/medium/1")
+    assert res.status_code == 200
+    assert res.get_json()["rating"] == "s"
 
 
 def test_tag_batch_absent_update(client, asAdmin):
