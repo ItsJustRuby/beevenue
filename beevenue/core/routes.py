@@ -1,13 +1,16 @@
 from base64 import b64encode
+
 from pathlib import Path
 
-from flask import Blueprint
+from flask import Blueprint, redirect
 from flask.helpers import make_response
 
+from beevenue import paths
+from beevenue.decorators import does_not_require_login
 from beevenue.flask import g, request, BeevenueResponse
 
 from .. import notifications, permissions
-from . import thumbnails
+from . import thumbnails, otp
 from .search import search
 from ..models import Medium
 from .schemas import search_query_params_schema
@@ -90,3 +93,24 @@ def get_thumb(full_path: str):  # type: ignore
 @permissions.get_medium_file
 def get_file(full_path: str):  # type: ignore
     return _sendfile_response(Path("/", "media", full_path))
+
+
+@bp.route("/medium/<int:medium_id>/otp", methods=["GET"])
+@permissions.get_medium
+def request_otp(medium_id):  # type: ignore
+    secret = otp.request(medium_id)
+    if not secret:
+        return "", 400
+
+    secret_path = paths.public_otp_path(secret)
+    target = request.args.get("target", "")
+    return redirect(f"{target}{secret_path}")
+
+
+@bp.route("/otp/<string:secret>")
+@does_not_require_login
+def get_otp(secret: str):  # type: ignore
+    full_path = otp.resolve_and_destroy(secret)
+    if full_path:
+        return _sendfile_response(Path("/", "media", full_path))
+    return "", 400
