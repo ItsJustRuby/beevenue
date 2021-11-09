@@ -10,6 +10,7 @@ from ..document_types import MediumDocument
 from ..models import MediumTag, Medium, Tag, MediumTagAbsence
 from .. import signals
 from .detail import MediumDetail, create_medium_detail
+from .ffmpeg import async_thumbnails
 from .media import similar_media
 from .tags.tags import ValidTagName, delete_orphans
 from .tags.new import create
@@ -192,5 +193,7 @@ def update_medium(
     result: MediumDocument = g.fast.get_medium(maybe_medium.id)  # type: ignore
 
     return create_medium_detail(
-        result, similar_media(request.beevenue_context, result)
+        result,
+        similar_media(request.beevenue_context, result),
+        async_thumbnails.try_load(medium_id),
     )

@@ -16,6 +16,7 @@ from beevenue.flask import g, BeevenueContext
 from ..models import Medium, MediumTag, MediumTagAbsence
 from .detail import MediumDetail, create_medium_detail
 from .similar import similar_media
+from .ffmpeg import async_thumbnails
 
 
 def _try_and_remove(file: str) -> None:
@@ -47,7 +48,9 @@ def get(
         return 400, None
 
     detail = create_medium_detail(
-        maybe_medium, similar_media(context, maybe_medium)
+        maybe_medium,
+        similar_media(context, maybe_medium),
+        async_thumbnails.try_load(maybe_medium.medium_id),
     )
     return 200, detail
 

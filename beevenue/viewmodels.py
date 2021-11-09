@@ -38,6 +38,10 @@ class _MediumDocumentDetailSchema(_MediumDocumentSchema):
         only=["medium_id", "medium_hash"],
     )
 
+    temporary_thumbnails = fields.List(
+        fields.String, data_key="temporaryThumbnails", required=False
+    )
+
 
 class _PaginationMediumSchema(_MediumDocumentSchema):
     tiny_thumbnail = fields.Method("get_thumb", data_key="tinyThumbnail")

@@ -1,7 +1,7 @@
 from io import BytesIO
 import os
 import re
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 from pathlib import Path
 
 from PIL import Image
@@ -32,26 +32,25 @@ def _thumbnailable_video(
     return 200, (origin_path, medium)
 
 
-def generate_picks(
-    medium_id: int, thumbnail_count: int
-) -> Tuple[int, Optional[List[bytes]]]:
-    status_code, details = _thumbnailable_video(medium_id)
-
-    if status_code != 200 or (details is None):
-        return status_code, None
-
-    origin_path, _ = details
-    return 200, ffmpeg.generate_picks(thumbnail_count, origin_path)
-
-
-def pick(medium_id: int, thumb_index: int, thumbnail_count: int) -> int:
+def generate_picks(medium_id: int) -> int:
     status_code, details = _thumbnailable_video(medium_id)
 
     if status_code != 200 or (details is None):
         return status_code
 
-    origin_path, medium = details
-    ffmpeg.pick(thumbnail_count, origin_path, thumb_index, medium.hash)
+    origin_path, _ = details
+    ffmpeg.generate_picks(medium_id, origin_path)
+    return 200
+
+
+def pick(medium_id: int, thumb_index: int) -> int:
+    status_code, details = _thumbnailable_video(medium_id)
+
+    if status_code != 200 or (details is None):
+        return status_code
+
+    _, medium = details
+    ffmpeg.pick(medium_id, thumb_index, medium.hash)
     _generate_tiny(medium)
     return 200
 

@@ -1,15 +1,15 @@
-import os
 from pathlib import Path
 import re
-from typing import List
 
 from flask import current_app
 
 from beevenue import paths
+from beevenue.flask import g
 from ..interface import ThumbnailingResult
 from .image import image_thumbnails
 from .temporary_thumbnails import temporary_thumbnails
 from .video import video_thumbnails
+from . import async_thumbnails
 
 
 def thumbnails(
@@ -26,44 +26,56 @@ def thumbnails(
 
 
 def _set_thumbnail(
-    medium_hash: str, thumbnail_size: str, filename: str
+    medium_hash: str, thumbnail_size: str, raw_bytes: bytes
 ) -> None:
     out_path = Path(paths.thumbnail_path(medium_hash, thumbnail_size))
 
-    with open(filename, "rb") as in_file:
-        with open(out_path, "wb") as out_file:
-            out_file.write(in_file.read())
+    with open(out_path, "wb") as out_file:
+        out_file.write(raw_bytes)
 
 
-def generate_picks(thumbnail_count: int, in_path: str) -> List[bytes]:
+def generate_picks_task(medium_id: int, in_path: str) -> None:
     """Generate some preview-sized thumbnails in-memory.
 
-    The files are returned as bytes in-memory and not permanently persisted.
-    This is a bit wasteful, but involves less server-side state management."""
+    The files are temporarily persisted (in redis)."""
 
-    all_thumbs_bytes = []
+    async_thumbnails.start_persisting(medium_id)
 
-    with temporary_thumbnails(
-        thumbnail_count, in_path, 120
-    ) as temporary_thumbs:
-        for thumb_file_name in temporary_thumbs:
-            with open(thumb_file_name, "rb") as thumb_file:
-                these_bytes = thumb_file.read()
-                all_thumbs_bytes.append(these_bytes)
+    all_thumbs = []
 
-    return all_thumbs_bytes
+    for _, thumbnail_size_pixels in current_app.config[
+        "BEEVENUE_THUMBNAIL_SIZES"
+    ].items():
+        with temporary_thumbnails(
+            in_path, thumbnail_size_pixels
+        ) as temporary_thumbs:
+            for thumb_file_name in temporary_thumbs:
+                with open(thumb_file_name, "rb") as thumb_file:
+                    these_bytes = thumb_file.read()
+                    all_thumbs.append(
+                        (
+                            thumbnail_size_pixels,
+                            these_bytes,
+                        )
+                    )
+
+    async_thumbnails.finish_persisting(medium_id, all_thumbs)
 
 
-def pick(
-    thumbnail_count: int, in_path: str, index: int, medium_hash: str
-) -> None:
-    """Pick ``index`` out of ``thumbnail_count`` as the new thumbnail."""
+def generate_picks(medium_id: int, in_path: str) -> None:
+    current_app.generate_picks_task.delay(medium_id, in_path)  # type: ignore
+
+
+def pick(medium_id: int, index: int, medium_hash: str) -> None:
+    """Pick ``index`` as the new thumbnail.
+
+    Afterwards expires all temporary thumbnails for that medium."""
 
     for thumbnail_size, thumbnail_size_pixels in current_app.config[
         "BEEVENUE_THUMBNAIL_SIZES"
     ].items():
-        with temporary_thumbnails(
-            thumbnail_count, in_path, thumbnail_size_pixels
-        ) as temporary_thumbs:
-            picked_thumb = list(temporary_thumbs)[index]
-            _set_thumbnail(medium_hash, thumbnail_size, picked_thumb)
+        thumb = async_thumbnails.pick(medium_id, thumbnail_size_pixels, index)
+        if thumb:
+            _set_thumbnail(medium_hash, thumbnail_size, thumb)
+
+    async_thumbnails.cleanup(medium_id)

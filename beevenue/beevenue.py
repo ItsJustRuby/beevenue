@@ -13,6 +13,7 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from .auth.auth import init as auth_init_app
 from .auth.routes import blueprint as auth_bp
+from .celery_init import init_app as celery_init_app
 from .cli import init_cli
 from .core import batch_routes, stats_routes, media_routes, routes, tag_routes
 from .db import db
@@ -61,6 +62,7 @@ def get_application(
         principal.init_app(application)
         context_init_app(application)
         db_init_app(application)
+        celery_init_app(application)
 
         application.register_blueprint(auth_bp)
         application.register_blueprint(routes.bp)

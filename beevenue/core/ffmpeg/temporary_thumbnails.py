@@ -8,6 +8,8 @@ import subprocess
 from tempfile import TemporaryDirectory
 from typing import Any, Generator
 
+from flask import current_app
+
 
 class _PickableThumbsContextManager(AbstractContextManager):
     """Disposable handle on a list of temporary thumbnails.
@@ -26,7 +28,7 @@ class _PickableThumbsContextManager(AbstractContextManager):
         self.inner.__exit__(exc, value, tb)
 
 
-def _get_length_in_seconds(in_path: str) -> int:
+def _get_length_in_ms(in_path: str) -> int:
     """Determine the length in seconds (rounded up) of the specified file."""
 
     cmd = [
@@ -47,8 +49,8 @@ def _get_length_in_seconds(in_path: str) -> int:
     )
 
     delta = _get_timedelta(completed_process.stderr)
-    seconds = ceil(delta.total_seconds())
-    return seconds
+    milliseconds = ceil(delta / timedelta(milliseconds=1))
+    return milliseconds
 
 
 def _get_timedelta(ffmpeg_stderr: str) -> timedelta:
@@ -57,8 +59,8 @@ def _get_timedelta(ffmpeg_stderr: str) -> timedelta:
     Raises on error."""
 
     line_regex = re.compile(
-        r".* time=(?P<hours>..):(?P<minutes>..)"
-        r":(?P<seconds>..).(?P<centiseconds>..) "
+        r".*Duration: (?P<hours>..):(?P<minutes>..)"
+        r":(?P<seconds>..).(?P<centiseconds>..),"
     )
 
     for line in ffmpeg_stderr.splitlines():
@@ -78,11 +80,13 @@ def _get_timedelta(ffmpeg_stderr: str) -> timedelta:
 
 
 def temporary_thumbnails(
-    thumbnail_count: int, in_path: str, scale: int
+    in_path: str, scale: int
 ) -> _PickableThumbsContextManager:
     """Generate some thumbnails and return a disposable handle to them."""
 
-    length_in_seconds = _get_length_in_seconds(in_path)
+    thumbnail_count = current_app.config["BEEVENUE_TEMPORARY_THUMBNAIL_COUNT"]
+
+    length_in_ms = _get_length_in_ms(in_path)
 
     temp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
     out_pattern = Path(temp_dir.name, "out_%03d.jpg")
@@ -92,7 +96,7 @@ def temporary_thumbnails(
         "-i",
         f"{in_path}",
         "-vf",
-        f"fps={(thumbnail_count-1)}/{length_in_seconds},scale={scale}:-1",
+        f"fps={((thumbnail_count-1)*1000)}/{length_in_ms},scale={scale}:-1",
         f"{out_pattern}",
     ]
 

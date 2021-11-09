@@ -1,5 +1,3 @@
-from base64 import b64encode
-
 from pathlib import Path
 
 from flask import Blueprint, redirect
@@ -38,37 +36,26 @@ def create_thumbnail(medium_id: int):  # type: ignore
 
 
 @bp.route(
-    "/medium/<int:medium_id>/thumbnail/picks/<int:thumbnail_count>",
+    "/medium/<int:medium_id>/thumbnail/picks",
     methods=["GET"],
 )
 @permissions.is_owner
-def show_thumbnail_picks(medium_id: int, thumbnail_count: int):  # type: ignore
-    status_code, list_of_bytes = thumbnails.generate_picks(
-        medium_id, thumbnail_count
-    )
+def show_thumbnail_picks(medium_id: int):  # type: ignore
+    status_code = thumbnails.generate_picks(medium_id)
 
-    if status_code != 200 or (list_of_bytes is None):
+    if status_code != 200:
         return "", status_code
 
-    # Idea: We could also use a zip file.
-    base64_strings = []
-
-    for byte in list_of_bytes:
-        base64_strings.append(b64encode(byte).decode("utf-8"))
-
-    return {"thumbs": base64_strings}
+    return "", 200
 
 
 @bp.route(
-    "/medium/<int:medium_id>/thumbnail/pick/"
-    "<int:thumb_index>/<int:thumbnail_count>",
+    "/medium/<int:medium_id>/thumbnail/pick/" "<int:thumb_index>",
     methods=["PATCH"],
 )
 @permissions.is_owner
-def pick_thumbnail(  # type: ignore
-    medium_id: int, thumb_index: int, thumbnail_count: int
-):
-    status_code = thumbnails.pick(medium_id, thumb_index, thumbnail_count)
+def pick_thumbnail(medium_id: int, thumb_index: int):  # type: ignore
+    status_code = thumbnails.pick(medium_id, thumb_index)
 
     return notifications.new_thumbnail(), status_code
 

@@ -1,4 +1,4 @@
-from typing import FrozenSet, List, NamedTuple
+from typing import FrozenSet, List, NamedTuple, Optional
 
 from ..document_types import MediumDocument, TinyMediumDocument
 
@@ -15,10 +15,13 @@ class MediumDetail(NamedTuple):
     absent_tag_names: FrozenSet[str]
 
     similar: List[TinyMediumDocument]
+    temporary_thumbnails: Optional[List[str]]
 
 
 def create_medium_detail(
-    medium: MediumDocument, similar: List[TinyMediumDocument]
+    medium: MediumDocument,
+    similar: List[TinyMediumDocument],
+    temporary_thumbnails: Optional[List[str]],
 ) -> MediumDetail:
     return MediumDetail(
         medium_id=medium.medium_id,
@@ -29,4 +32,5 @@ def create_medium_detail(
         searchable_tag_names=medium.searchable_tag_names,
         absent_tag_names=medium.absent_tag_names,
         similar=similar,
+        temporary_thumbnails=temporary_thumbnails,
     )
