@@ -8,3 +8,4 @@ class User(db.Model):
     username = db.Column(db.String(length=256), unique=True, nullable=False)
     hash = db.Column(db.String(length=256), nullable=False)
     role = db.Column(db.String(length=256), nullable=False)
+    google_id = db.Column(db.String(length=256), nullable=True)

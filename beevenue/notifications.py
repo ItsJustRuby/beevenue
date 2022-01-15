@@ -72,6 +72,13 @@ def could_not_update_medium() -> Notification:
     )
 
 
+def google_account_connected() -> Notification:
+    return _make_notification(
+        _NotificationLevel.INFO,
+        _text("Google account successfully connected to user account."),
+    )
+
+
 def no_permission() -> Notification:
     return _make_notification(
         _NotificationLevel.ERROR,

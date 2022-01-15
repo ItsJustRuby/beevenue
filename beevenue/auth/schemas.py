@@ -3,6 +3,13 @@ from marshmallow import EXCLUDE, fields, Schema
 from ..schemas import requires_json_body
 
 
+class _GoogleJwtSchema(Schema):
+    googleJWT = fields.String(required=True)
+
+
+google_jwt_schema = requires_json_body(_GoogleJwtSchema())
+
+
 class _LoginParamsSchema(Schema):
     class Meta:
         """Exclude all other fields not listed here."""
