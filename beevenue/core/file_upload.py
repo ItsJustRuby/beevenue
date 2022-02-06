@@ -164,14 +164,14 @@ def create_medium_from_upload(
 
     upload_file(file, basename, extension)
 
-    _maybe_add_tags(medium, file)
-
     status, error = thumbnails.create(medium)
     if status != 200:
         return None, {
             "type": UploadFailureType.COULD_NOT_THUMBNAIL,
             "message": error,
         }
+
+    _maybe_add_tags(medium, file)
 
     session.commit()
     signals.medium_added.send(medium)

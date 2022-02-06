@@ -118,11 +118,11 @@ class Medium(db.Model):
         db.Enum("e", "s", "q", "u", name="Rating"), nullable=False
     )
 
-    width = db.Column(db.Integer, nullable=True)
-    height = db.Column(db.Integer, nullable=True)
-    filesize = db.Column(db.BigInteger, nullable=True)
+    width = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    filesize = db.Column(db.BigInteger, nullable=False)
 
-    insert_date = db.Column(db.Date, nullable=True, default=date.today)
+    insert_date = db.Column(db.Date, nullable=False, default=date.today)
 
     tiny_thumbnail = db.Column(db.LargeBinary(), nullable=True)
 

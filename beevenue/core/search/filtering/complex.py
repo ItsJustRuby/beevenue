@@ -131,7 +131,7 @@ class AgeSearchTerm(OperatorSearchTerm[int], IntComparisonMixin):
 class FilesizeSearchTerm(OperatorSearchTerm[int], IntComparisonMixin):
     """Search term which compares the medium's filesize against some limit."""
 
-    SIZE_PER_UNIT = {"k": 1024, "m": 1024 * 1024, "g": 1024 * 1024}
+    SIZE_PER_UNIT = {"k": 1024, "m": 1024 * 1024, "g": 1024 * 1024 * 1024}
 
     def __init__(self, unit: str, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
