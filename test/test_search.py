@@ -183,3 +183,33 @@ def test_search_with_counting_term4_succeeds(client, asAdmin, nsfw):
     result = res.get_json()
     print(result)
     assert len(result["items"]) >= 3
+
+
+@pytest.mark.parametrize(
+    "filterAndExpectedCount",
+    [
+        ("width>400", 14),
+        ("width<400", 0),
+        ("height>200", 14),
+        ("height<200", 0),
+        ("filesize>5M", 0),
+        ("filesize>2gb", 0),
+        ("filesize=1234", 0),
+        ("filesize<2m", 14),
+        ("age>2w", 0),
+        ("age>2y", 0),
+        ("age>2m", 0),
+        ("age>10d", 0),
+        ("age<4d", 14),
+        ("aspectratio>1", 14),
+        ("aspectratio<1", 0),
+    ],
+)
+def test_search_spammy_filter_tests(client, asUser, filterAndExpectedCount):
+    _filter, expectedCount = filterAndExpectedCount
+    res = _when_searching(client, _filter, page_size=20)
+    assert res.status_code == 200
+    result = res.get_json()
+    print(result)
+
+    assert len(result["items"]) == expectedCount

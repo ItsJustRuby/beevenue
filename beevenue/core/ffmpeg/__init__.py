@@ -5,11 +5,20 @@ from flask import current_app
 
 from beevenue import paths
 from beevenue.flask import g
-from ..interface import ThumbnailingResult
-from .image import image_thumbnails
+from ..interface import Measurements, ThumbnailingResult
+from .image import image_thumbnails, measure as measure_image
 from .temporary_thumbnails import temporary_thumbnails
-from .video import video_thumbnails
+from .video import video_thumbnails, measure as measure_video
 from . import async_thumbnails
+
+
+def measure(in_path: str, mime_type: str) -> Measurements:
+    if re.match("image/", mime_type):
+        return measure_image(in_path)
+    if re.match("video/", mime_type):
+        return measure_video(in_path)
+
+    raise Exception(f"Cannot measure file with mime_type {mime_type}")
 
 
 def thumbnails(

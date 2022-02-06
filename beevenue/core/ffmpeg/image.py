@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image
 from flask import current_app
 
-from ..interface import ThumbnailingResult
+from ..interface import SuccessThumbnailingResult, Measurements
 
 
 def _constrain_aspect_ratio(img: Image) -> Image:
@@ -47,11 +47,17 @@ def _get_thumbnail(
     return thumbnail
 
 
+def measure(in_path: str) -> Measurements:
+    filesize = Path(in_path).stat().st_size
+    with Image.open(in_path) as img:
+        width, height = img.size
+    return Measurements(width=width, height=height, filesize=filesize)
+
+
 def image_thumbnails(
     in_path: str, extensionless_out_path: Path
-) -> ThumbnailingResult:
+) -> SuccessThumbnailingResult:
     """Generate thumbnails for given image and save them to disk."""
-
     with Image.open(in_path) as img:
         width, height = img.size
         aspect_ratio = float(width) / height
@@ -72,6 +78,4 @@ def image_thumbnails(
                 out_path, quality=80, progressive=True, optimize=True
             )
 
-        thumb_width, thumb_height = thumbnail.size
-        aspect_ratio = float(thumb_width) / thumb_height
-        return ThumbnailingResult.from_success(aspect_ratio)
+        return SuccessThumbnailingResult()

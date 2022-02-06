@@ -1,12 +1,12 @@
 # These tests are just here to raise coverage the last few percents.
+from datetime import date
 from beevenue.strawberry.common import HasAnyTagsLike
-import os
 from pathlib import Path
 
 import pytest
 
 from beevenue.core import ffmpeg
-from beevenue.core.search import complex, simple
+from beevenue.core.search.filtering import complex, simple
 from beevenue.core.search.pagination import Pagination
 from beevenue.fast.nope import NotACache
 from beevenue.models import Tag
@@ -35,6 +35,10 @@ def test_indexed_medium_internals():
         "someHash",
         "mime",
         "q",
+        480,
+        360,
+        1024,
+        date.today(),
         bytes(),
         frozenset(),
         frozenset(),
@@ -46,6 +50,10 @@ def test_indexed_medium_internals():
         "someOtherHash",
         "mime",
         "q",
+        480,
+        360,
+        1024,
+        date.today(),
         bytes(),
         frozenset(),
         frozenset(),
@@ -62,6 +70,10 @@ def test_tiny_indexed_medium_internals():
         1,
         "hash1",
         "q",
+        480,
+        360,
+        1024,
+        date.today(),
         frozenset(),
         frozenset(),
         frozenset(),
@@ -71,6 +83,10 @@ def test_tiny_indexed_medium_internals():
         1,
         "hash2",
         "e",
+        480,
+        360,
+        1024,
+        date.today(),
         frozenset(),
         frozenset(),
         frozenset(),
@@ -91,22 +107,8 @@ def test_thumbnailing_weird_mime_type_throws():
 
 
 def test_counting_search_term_internals():
-    term = complex.CountingSearchTerm("??", 3)  # invalid operator
     with pytest.raises(Exception):
-        term.applies_to(None)
-
-
-def test_category_search_term_internals():
-    term = complex.CategorySearchTerm("c", "??", 3)  # invalid operator
-
-    class FakeMedium:
-        def __getattribute__(self, name):
-            if name == "tag_names":
-                return self
-            return set()
-
-    with pytest.raises(Exception):
-        term.applies_to(FakeMedium())
+        complex.CountingSearchTerm("??", 3)  # invalid operator
 
 
 def test_negative_search_term_internals():

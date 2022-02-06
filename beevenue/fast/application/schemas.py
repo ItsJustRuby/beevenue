@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import date
 import os
 from typing import Any, Dict, List
 
@@ -52,6 +53,7 @@ class CapnpSchema(Schema):
 
     SIMPLE: List[str] = []
     LISTS: List[str] = []
+    DATES: List[str] = []
 
     @property
     @abstractmethod
@@ -66,6 +68,9 @@ class CapnpSchema(Schema):
         for key in self.__class__.SIMPLE:
             self._construct_simple(base, obj, key)
 
+        for key in self.__class__.DATES:
+            self._construct_date(base, obj, key)
+
         for field in self.__class__.LISTS:
             self._construct_list(base, obj, field)
 
@@ -74,6 +79,12 @@ class CapnpSchema(Schema):
     ) -> None:
         value = getattr(obj, key)
         setattr(base, _camel_case(key), value)
+
+    def _construct_date(
+        self, base: TBase, obj: TSerializable, key: str
+    ) -> None:
+        value: date = getattr(obj, key)
+        setattr(base, _camel_case(key), value.isoformat())
 
     def _construct_list(
         self, base: TBase, obj: TSerializable, key: str
@@ -104,6 +115,9 @@ class FullMediumDocumentSchema(CapnpSchema):
         "medium_hash",
         "mime_type",
         "rating",
+        "width",
+        "height",
+        "filesize",
         "tiny_thumbnail",
     ]
 
@@ -112,6 +126,8 @@ class FullMediumDocumentSchema(CapnpSchema):
         "innate_tag_names",
         "searchable_tag_names",
     ]
+
+    DATES = ["insert_date"]
 
     @property
     def target(self) -> TBase:
@@ -123,6 +139,10 @@ class FullMediumDocumentSchema(CapnpSchema):
             doc.mediumHash,
             doc.mimeType,
             doc.rating,
+            doc.width,
+            doc.height,
+            doc.filesize,
+            date.fromisoformat(doc.insertDate),
             doc.tinyThumbnail,
             frozenset(doc.innateTagNames),
             frozenset(doc.searchableTagNames),
@@ -137,6 +157,9 @@ class TinyMediumDocumentSchema(CapnpSchema):
         "medium_id",
         "medium_hash",
         "rating",
+        "width",
+        "height",
+        "filesize",
     ]
 
     LISTS = [
@@ -144,6 +167,8 @@ class TinyMediumDocumentSchema(CapnpSchema):
         "innate_tag_names",
         "searchable_tag_names",
     ]
+
+    DATES = ["insert_date"]
 
     @property
     def target(self) -> Any:
@@ -154,6 +179,10 @@ class TinyMediumDocumentSchema(CapnpSchema):
             doc.mediumId,
             doc.mediumHash,
             doc.rating,
+            doc.width,
+            doc.height,
+            doc.filesize,
+            date.fromisoformat(doc.insertDate),
             frozenset(doc.innateTagNames),
             frozenset(doc.searchableTagNames),
             frozenset(doc.absentTagNames),

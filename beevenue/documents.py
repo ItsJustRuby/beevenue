@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, FrozenSet
 
 from .document_types import MediumDocument, TinyMediumDocument
@@ -16,6 +17,10 @@ class IndexedMedium(
         medium_hash: str,
         mime_type: str,
         rating: str,
+        width: int,
+        height: int,
+        filesize: int,
+        insert_date: date,
         tiny_thumbnail: bytes,
         innate_tag_names: FrozenSet[str],
         searchable_tag_names: FrozenSet[str],
@@ -25,6 +30,10 @@ class IndexedMedium(
         self.medium_hash = medium_hash
         self.mime_type = mime_type
         self.rating = rating
+        self.width = width
+        self.height = height
+        self.filesize = filesize
+        self.insert_date = insert_date
         self.tiny_thumbnail = tiny_thumbnail
         self.innate_tag_names = innate_tag_names
         self.searchable_tag_names = searchable_tag_names
@@ -45,7 +54,10 @@ class IndexedMedium(
         return self.__str__()
 
 
-class TinyIndexedMedium(TinyMediumDocument):
+class TinyIndexedMedium(
+    TinyMediumDocument
+):  # pylint: disable=too-many-instance-attributes
+
     """Slimmer in-memory representation of a medium."""
 
     @staticmethod
@@ -54,6 +66,10 @@ class TinyIndexedMedium(TinyMediumDocument):
             full.medium_id,
             full.medium_hash,
             full.rating,
+            full.width,
+            full.height,
+            full.filesize,
+            full.insert_date,
             full.innate_tag_names,
             full.searchable_tag_names,
             full.absent_tag_names,
@@ -64,6 +80,10 @@ class TinyIndexedMedium(TinyMediumDocument):
         medium_id: int,
         medium_hash: str,
         rating: str,
+        width: int,
+        height: int,
+        filesize: int,
+        insert_date: date,
         innate_tag_names: FrozenSet[str],
         searchable_tag_names: FrozenSet[str],
         absent_tag_names: FrozenSet[str],
@@ -71,6 +91,10 @@ class TinyIndexedMedium(TinyMediumDocument):
         self.medium_id = medium_id
         self.medium_hash = medium_hash
         self.rating = rating
+        self.width = width
+        self.height = height
+        self.filesize = filesize
+        self.insert_date = insert_date
         self.innate_tag_names = innate_tag_names
         self.searchable_tag_names = searchable_tag_names
         self.absent_tag_names = absent_tag_names

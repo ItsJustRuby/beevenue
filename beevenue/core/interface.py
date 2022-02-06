@@ -1,20 +1,26 @@
-from typing import Optional
+from typing import NamedTuple, Union
 
 
-class ThumbnailingResult:
-    """Describes result of thumbnailing. Has error or success details."""
+class ErrorThumbnailingResult:
+    """Thumbnailing was unsuccessful, error details are within."""
 
-    def __init__(
-        self, success: bool, aspect_ratio: Optional[float], error: Optional[str]
-    ):
-        self.success = success
-        self.aspect_ratio = aspect_ratio
+    def __init__(self, error: str) -> None:
         self.error = error
 
-    @staticmethod
-    def from_success(aspect_ratio: float) -> "ThumbnailingResult":
-        return ThumbnailingResult(True, aspect_ratio, error=None)
 
-    @staticmethod
-    def from_failure(error: str) -> "ThumbnailingResult":
-        return ThumbnailingResult(False, aspect_ratio=None, error=error)
+class SuccessThumbnailingResult:
+    """Thumbnailing was successful."""
+
+    def __init__(self) -> None:
+        self.error = None
+
+
+ThumbnailingResult = Union[ErrorThumbnailingResult, SuccessThumbnailingResult]
+
+
+class Measurements(NamedTuple):
+    """Tuple holding a medium's measurements to be stored later."""
+
+    width: int
+    height: int
+    filesize: int

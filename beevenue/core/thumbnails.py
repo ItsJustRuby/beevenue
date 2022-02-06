@@ -63,10 +63,22 @@ def create(medium: Medium) -> Tuple[int, str]:
     if thumbnailing_result.error:
         return 400, thumbnailing_result.error
 
-    medium.aspect_ratio = thumbnailing_result.aspect_ratio
+    add_measurements(medium)
+
     session.commit()
     _generate_tiny(medium)
     return 200, ""
+
+
+def add_measurements(medium: Medium) -> None:
+    extension = EXTENSIONS[medium.mime_type]
+    in_path = paths.medium_path((f"{medium.hash}.{extension}"))
+
+    measurements = ffmpeg.measure(in_path, medium.mime_type)
+
+    medium.width = measurements.width
+    medium.height = measurements.height
+    medium.filesize = measurements.filesize
 
 
 def _create(mime_type: str, medium_hash: str) -> ThumbnailingResult:
@@ -75,8 +87,8 @@ def _create(mime_type: str, medium_hash: str) -> ThumbnailingResult:
     )
 
     extension = EXTENSIONS[mime_type]
-
     origin_path = paths.medium_path((f"{medium_hash}.{extension}"))
+
     return ffmpeg.thumbnails(origin_path, extensionless_thumb_path, mime_type)
 
 

@@ -4,11 +4,11 @@ from beevenue.strawberry.get import get_rules
 from re import Match
 from typing import NoReturn, Optional
 
-from ...document_types import TinyMediumDocument
-from .base import SearchTerm
+from ....document_types import TinyMediumDocument
+from ..base import FilteringSearchTerm
 
 
-class BasicSearchTerm(ABC, SearchTerm):
+class BasicSearchTerm(ABC, FilteringSearchTerm):
     """Abstract helper class that saves a single term."""
 
     def __init__(self, term: str):
@@ -50,7 +50,7 @@ class ExactSearchTerm(BasicSearchTerm):
         return ExactSearchTerm(match.group(1))
 
 
-class RatingSearchTerm(SearchTerm):
+class RatingSearchTerm(FilteringSearchTerm):
     """Search term like "rating:s"."""
 
     def __init__(self, rating: str):
@@ -67,7 +67,7 @@ class RatingSearchTerm(SearchTerm):
         return medium.rating == self.rating
 
 
-class RuleSearchTerm(SearchTerm):
+class RuleSearchTerm(FilteringSearchTerm):
     """Search term like "rule:0". Returns violating media."""
 
     def __init__(self, rule_index: int):
@@ -93,10 +93,10 @@ class RuleSearchTerm(SearchTerm):
         return self.rule.is_violated_by(medium)
 
 
-class Negative(SearchTerm):
+class Negative(FilteringSearchTerm):
     """Meta search term which negates the wrapped inner SearchTerm."""
 
-    def __init__(self, inner_term: SearchTerm):
+    def __init__(self, inner_term: FilteringSearchTerm):
         self.inner_term = inner_term
 
     @classmethod

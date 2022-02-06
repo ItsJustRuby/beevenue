@@ -1,10 +1,42 @@
 from pathlib import Path
 import subprocess
 
-from PIL import Image
 from flask import current_app
 
-from ..interface import ThumbnailingResult
+from ..interface import (
+    ErrorThumbnailingResult,
+    SuccessThumbnailingResult,
+    ThumbnailingResult,
+    Measurements,
+)
+
+
+def measure(in_path: str) -> Measurements:
+    filesize = Path(in_path).stat().st_size
+
+    # ffprobe should return a CSV string such as "480,360" from this
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=width,height",
+        "-of",
+        "csv=p=0",
+        in_path,
+    ]
+
+    completed_process = subprocess.run(
+        cmd, encoding="utf-8", stdout=subprocess.PIPE, check=False
+    )
+
+    two_strings = completed_process.stdout.strip().split(",")
+    width = int(two_strings[0])
+    height = int(two_strings[1])
+
+    return Measurements(width=width, height=height, filesize=filesize)
 
 
 def video_thumbnails(
@@ -31,11 +63,8 @@ def video_thumbnails(
         ffmpeg_result = subprocess.run(cmd, check=False)
 
         if ffmpeg_result.returncode != 0:
-            return ThumbnailingResult.from_failure(
+            return ErrorThumbnailingResult(
                 "Could not create thumbnail for video."
             )
 
-    with Image.open(out_path) as img:
-        width, height = img.size
-        aspect_ratio = float(width) / height
-        return ThumbnailingResult.from_success(aspect_ratio)
+    return SuccessThumbnailingResult()

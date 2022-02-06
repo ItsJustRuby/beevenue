@@ -57,7 +57,7 @@ def replace_medium(
 
     session.commit()
 
-    # Update thumbs, tiny thumb, aspect_ratio
+    # Update thumbs, tiny thumb
     thumbnails.create(maybe_medium)
 
     # Delete old file, thumbs

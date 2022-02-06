@@ -3,6 +3,7 @@ set -ev -o pipefail
 
 # Run migrations (if necessary)
 bash ./script/flask.sh db upgrade
+bash ./script/flask.sh data-migration
 
 bash ./script/flask.sh warmup
 

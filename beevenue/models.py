@@ -1,5 +1,6 @@
 # pylint: disable=missing-class-docstring
-from typing import List, Optional
+from typing import Optional
+from datetime import date
 
 from .db import db
 
@@ -113,10 +114,15 @@ class Medium(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     hash = db.Column(db.String(length=32), unique=True, nullable=False)
     mime_type = db.Column(db.String(length=256), nullable=False)
-    aspect_ratio = db.Column(db.Numeric(precision=4, scale=2), nullable=True)
     rating = db.Column(
         db.Enum("e", "s", "q", "u", name="Rating"), nullable=False
     )
+
+    width = db.Column(db.Integer, nullable=True)
+    height = db.Column(db.Integer, nullable=True)
+    filesize = db.Column(db.BigInteger, nullable=True)
+
+    insert_date = db.Column(db.Date, nullable=True, default=date.today)
 
     tiny_thumbnail = db.Column(db.LargeBinary(), nullable=True)
 
@@ -133,18 +139,7 @@ class Medium(db.Model):
         lazy="raise",
     )
 
-    def __init__(
-        self,
-        medium_hash: str,
-        mime_type: str,
-        rating: str = "u",
-        tags: List[Tag] = None,
-        absent_tags: List[Tag] = None,
-        aspect_ratio: Optional[float] = None,
-    ):
-        self.rating = rating
+    def __init__(self, medium_hash: str, mime_type: str):
         self.mime_type = mime_type
         self.hash = medium_hash
-        self.tags = tags or []
-        self.absent_tags = absent_tags or []
-        self.aspect_ratio = aspect_ratio
+        self.rating = "u"

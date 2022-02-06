@@ -4,7 +4,11 @@ struct MediumDocumentTiny {
   mediumId @0 :UInt32;
   rating @1 :Text;
   mediumHash @2 :Text;
-  innateTagNames @3 :List(Text);
-  searchableTagNames @4 :List(Text);
-  absentTagNames @5 :List(Text);
+  width @3 :UInt32;
+  height @4 :UInt32;
+  filesize @5 :UInt64;
+  insertDate @6 :Text;
+  innateTagNames @7 :List(Text);
+  searchableTagNames @8 :List(Text);
+  absentTagNames @9 :List(Text);
 }
