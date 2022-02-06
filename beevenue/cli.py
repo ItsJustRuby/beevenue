@@ -41,23 +41,3 @@ def init_cli(app: BeevenueFlask) -> None:
                 continue
 
             print(f"Successfully imported {path} (Medium {medium_id})")
-
-    @app.cli.command("data-migration")
-    def _migrate_data() -> None:
-        # TBD: Remove this when all media are migrated and cols are non-null
-        media_to_migrate = (
-            g.db.execute(
-                select(Medium)
-                .filter(Medium.insert_date.is_(None))
-                .order_by(Medium.id)
-            )
-            .scalars()
-            .all()
-        )
-
-        for medium in media_to_migrate:
-            print(f"Adding measurements to medium {medium.id}")
-            thumbnails.add_measurements(medium)
-
-            medium.insert_date = date.today() - timedelta(days=1)
-            g.db.commit()
