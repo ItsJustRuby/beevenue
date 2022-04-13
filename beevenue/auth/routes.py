@@ -115,8 +115,6 @@ def logout():  # type: ignore
 @google_jwt_schema
 @does_not_require_login
 def login_with_google():  # type: ignore
-    raise Exception("Testing infrastructure problems")
-
     authenticated, auth_result = _authenticate()
     if not authenticated:
         return "", 401
@@ -130,7 +128,9 @@ def login_with_google():  # type: ignore
     if not maybe_user:
         return "", 401
 
-    return _logged_in_user(maybe_user)
+    result = _logged_in_user(maybe_user)
+    raise Exception("Finished")
+    return result
 
 
 @blueprint.route("/login", methods=["POST"])
