@@ -116,7 +116,6 @@ def logout():  # type: ignore
 @does_not_require_login
 def login_with_google():  # type: ignore
     authenticated, auth_result = _authenticate()
-    raise Exception("Completed _authenticate call")
     if not authenticated:
         return "", 401
 
@@ -126,14 +125,10 @@ def login_with_google():  # type: ignore
         .first()
     )
 
-    raise Exception("Completed SQL query")
-
     if not maybe_user:
         return "", 401
 
-    result = _logged_in_user(maybe_user)
-    raise Exception("Finished")
-    return result
+    return _logged_in_user(maybe_user)
 
 
 @blueprint.route("/login", methods=["POST"])

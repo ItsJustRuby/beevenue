@@ -32,6 +32,11 @@ services:
     depends_on:
       - app
   app:
+    # Workaround to allow hosting beevenue on a docker host that is also its own DNS.
+    # In that case, DNS forwarding from host to container isn't trivial, so this is
+    # the easy, hacky way to allow DNS resolution of domains like googleapis.com
+    # which is necessary for social login.
+    dns: 8.8.8.8
     build:
       context: .
       dockerfile: ./script/app.Dockerfile
