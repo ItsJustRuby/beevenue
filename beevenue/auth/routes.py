@@ -116,6 +116,7 @@ def logout():  # type: ignore
 @does_not_require_login
 def login_with_google():  # type: ignore
     authenticated, auth_result = _authenticate()
+    raise Exception("Completed _authenticate call")
     if not authenticated:
         return "", 401
 
@@ -124,6 +125,8 @@ def login_with_google():  # type: ignore
         .scalars()
         .first()
     )
+
+    raise Exception("Completed SQL query")
 
     if not maybe_user:
         return "", 401
