@@ -115,6 +115,8 @@ def logout():  # type: ignore
 @google_jwt_schema
 @does_not_require_login
 def login_with_google():  # type: ignore
+    raise Exception("Testing infrastructure problems")
+
     authenticated, auth_result = _authenticate()
     if not authenticated:
         return "", 401
