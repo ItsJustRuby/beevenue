@@ -32,6 +32,17 @@ def _thumbnailable_video(
     return 200, (origin_path, medium)
 
 
+def generate_animated(medium_id: int) -> int:
+    status_code, details = _thumbnailable_video(medium_id)
+
+    if status_code != 200 or (details is None):
+        return status_code
+
+    origin_path, _ = details
+    ffmpeg.generate_animated_task(medium_id, origin_path)
+    return 200
+
+
 def generate_picks(medium_id: int) -> int:
     status_code, details = _thumbnailable_video(medium_id)
 

@@ -6,7 +6,8 @@ from typing import Iterable
 
 import click
 from sqlalchemy import select
-from beevenue.core import thumbnails
+from beevenue.core import media, thumbnails
+from beevenue.core.thumbnails import generate_animated
 from beevenue.flask import g
 from beevenue.models import Medium
 
@@ -41,3 +42,10 @@ def init_cli(app: BeevenueFlask) -> None:
                 continue
 
             print(f"Successfully imported {path} (Medium {medium_id})")
+
+    @app.cli.command("animate")
+    @click.argument("medium_id", nargs=1, type=click.INT)
+    def _animate(medium_id: int) -> None:
+        res = generate_animated(medium_id)
+        print(res)
+        print("DONE")
