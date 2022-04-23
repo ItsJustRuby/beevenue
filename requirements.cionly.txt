@@ -1,4 +1,4 @@
-black==20.8b1
+black==22.3.0
 coverage==6.3.2
 coveralls==3.3.1
 mypy==0.910

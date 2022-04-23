@@ -17,6 +17,7 @@ psycopg2==2.8.6
 pycapnp==1.1.0
 redis==4.2.2
 requests==2.27.1
+scenedetect[opencv]==0.5.6.1
 sentry-sdk[flask]==1.5.10
 SQLAlchemy==1.4.35
 SQLAlchemy-Utils==0.38.2

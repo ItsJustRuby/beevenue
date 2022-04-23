@@ -1,14 +1,12 @@
 """CLI operations for the application. Mainly used for testing."""
 
-from datetime import date, timedelta
 import os
 from typing import Iterable
 
 import click
-from sqlalchemy import select
-from beevenue.core import thumbnails
+from numpy import full
+from beevenue.core.thumbnails import generate_animated
 from beevenue.flask import g
-from beevenue.models import Medium
 
 from .core.file_upload import create_medium_from_upload
 from .flask import BeevenueFlask
@@ -41,3 +39,25 @@ def init_cli(app: BeevenueFlask) -> None:
                 continue
 
             print(f"Successfully imported {path} (Medium {medium_id})")
+
+    @app.cli.command("animate")
+    @click.argument("medium_id", nargs=1, type=click.INT)
+    def _animate(medium_id: int) -> None:
+        res = generate_animated(medium_id)
+        print(f"Generating animated thumb for id {medium_id}: {res}")
+        print("DONE")
+
+    @app.cli.command("animate-all")
+    def _animate_all() -> None:
+        all = g.fast.get_all_tiny()
+        for tiny_medium in all:
+            full_medium = g.fast.get_medium(tiny_medium.medium_id)
+            if full_medium.mime_type.startswith("video/") or (
+                full_medium.mime_type == "image/gif"
+                and "video" in full_medium.innate_tag_names
+            ):
+                res = generate_animated(full_medium.medium_id)
+                print(
+                    f"Generating animated thumb for id {tiny_medium.medium_id}: {res}"
+                )
+        print("DONE")

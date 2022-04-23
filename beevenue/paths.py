@@ -28,8 +28,14 @@ def thumbnail_directory() -> str:
     return os.path.join(_base_dir(), "thumbs")
 
 
-def thumbnail_path(medium_hash: str, size: str) -> str:
-    return os.path.join(_base_dir(), "thumbs", f"{medium_hash}.{size}.jpg")
+def thumbnail_path(medium_hash: str, size: str, is_animated: bool) -> str:
+    if is_animated:
+        extension = "mp4"
+    else:
+        extension = "jpg"
+    return os.path.join(
+        _base_dir(), "thumbs", f"{medium_hash}.{size}.{extension}"
+    )
 
 
 def medium_path(filename: str) -> str:

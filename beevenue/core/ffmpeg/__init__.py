@@ -1,13 +1,17 @@
 from pathlib import Path
+import os
 import re
 
 from flask import current_app
 
+
 from beevenue import paths
+from beevenue.extensions import EXTENSIONS
 from beevenue.flask import g
 from ..interface import Measurements, ThumbnailingResult
 from .image import image_thumbnails, measure as measure_image
 from .temporary_thumbnails import temporary_thumbnails
+from .animated_thumbnails import generate_animated
 from .video import video_thumbnails, measure as measure_video
 from . import async_thumbnails
 
@@ -21,10 +25,17 @@ def measure(in_path: str, mime_type: str) -> Measurements:
     raise Exception(f"Cannot measure file with mime_type {mime_type}")
 
 
-def thumbnails(
-    in_path: str, extensionless_out_path: Path, mime_type: str
-) -> ThumbnailingResult:
+def thumbnails(medium_hash: str, mime_type: str) -> ThumbnailingResult:
     """Generate and persist thumbnails of the file at ``in_path``."""
+
+    extensionless_out_path = Path(
+        os.path.join(paths.thumbnail_directory(), medium_hash)
+    )
+
+    extension = EXTENSIONS[mime_type]
+    in_path = paths.medium_path((f"{medium_hash}.{extension}"))
+
+    generate_animated(in_path, medium_hash)
 
     if re.match("image/", mime_type):
         return image_thumbnails(in_path, extensionless_out_path)
@@ -37,7 +48,9 @@ def thumbnails(
 def _set_thumbnail(
     medium_hash: str, thumbnail_size: str, raw_bytes: bytes
 ) -> None:
-    out_path = Path(paths.thumbnail_path(medium_hash, thumbnail_size))
+    out_path = Path(
+        paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=False)
+    )
 
     with open(out_path, "wb") as out_file:
         out_file.write(raw_bytes)
