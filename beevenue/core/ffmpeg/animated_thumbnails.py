@@ -19,9 +19,7 @@ from .measure import get_length_in_ms
 
 class _AnimatedThumbnailTemporaryDirectory(AbstractContextManager):
     def __init__(self) -> None:
-        # The temporary dictionary we use needs to be local in order for
-        # ffmpeg to feel safe operating in it.
-        self.inner = TemporaryDirectory(dir=".")
+        self.inner = TemporaryDirectory()
 
     def filename(self, local_path: str) -> str:
         return str(Path(self.inner.name, local_path))
@@ -194,6 +192,8 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
             cmd = [
                 "ffmpeg",
                 "-y",
+                "-safe",
+                "0",
                 "-f",
                 "concat",
                 "-i",
