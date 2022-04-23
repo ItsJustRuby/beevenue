@@ -117,8 +117,9 @@ def delete_medium_files(medium_hash: str, extension: str) -> None:
     _try_and_remove(paths.medium_path(f"{medium_hash}.{extension}"))
 
     for thumbnail_size in current_app.config["BEEVENUE_THUMBNAIL_SIZES"].keys():
-        path = paths.thumbnail_path(medium_hash, thumbnail_size)
-        _try_and_remove(path)
+        for is_animated in [False, True]:
+            path = paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=is_animated)
+            _try_and_remove(path)
 
 
 def get_zip(medium_id: int) -> Tuple[int, Optional[BytesIO]]:

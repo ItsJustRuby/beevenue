@@ -25,5 +25,4 @@ def parse_search_terms(search_term_list: List[str]) -> SearchTerms:
             filtering.add(maybe_filter)
             continue
 
-    debug(f"Parsed search terms: {filtering}, {sorting}")
     return SearchTerms(filtering, sorting)

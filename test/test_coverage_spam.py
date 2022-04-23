@@ -103,7 +103,7 @@ def test_tag_cannot_be_created_empty(client):
 
 def test_thumbnailing_weird_mime_type_throws():
     with pytest.raises(Exception):
-        ffmpeg.thumbnails("", Path("./"), "application/weird")
+        ffmpeg.thumbnails("", "application/weird")
 
 
 def test_counting_search_term_internals():

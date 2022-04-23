@@ -1,13 +1,12 @@
 from io import BytesIO
-import os
 import re
 from typing import Optional, Tuple
-from pathlib import Path
 
 from PIL import Image
 from flask import current_app, g
 
 from beevenue import paths
+from beevenue.core.ffmpeg import animated_thumbnails
 from beevenue.extensions import EXTENSIONS
 
 from . import ffmpeg
@@ -24,7 +23,7 @@ def _thumbnailable_video(
     if not medium:
         return 404, None
 
-    if not re.match("video/", medium.mime_type):
+    if not (re.match("video/", medium.mime_type) or medium.mime_type == "image/gif"):
         return 400, None
 
     extension = EXTENSIONS[medium.mime_type]
@@ -38,8 +37,8 @@ def generate_animated(medium_id: int) -> int:
     if status_code != 200 or (details is None):
         return status_code
 
-    origin_path, _ = details
-    ffmpeg.generate_animated_task(medium_id, origin_path)
+    origin_path, medium = details
+    animated_thumbnails.generate_animated_task(origin_path, medium.hash)
     return 200
 
 
@@ -93,21 +92,14 @@ def add_measurements(medium: Medium) -> None:
 
 
 def _create(mime_type: str, medium_hash: str) -> ThumbnailingResult:
-    extensionless_thumb_path = Path(
-        os.path.join(paths.thumbnail_directory(), medium_hash)
-    )
-
-    extension = EXTENSIONS[mime_type]
-    origin_path = paths.medium_path((f"{medium_hash}.{extension}"))
-
-    return ffmpeg.thumbnails(origin_path, extensionless_thumb_path, mime_type)
+    return ffmpeg.thumbnails(medium_hash, mime_type)
 
 
 def _generate_tiny(medium: Medium) -> None:
     size, _ = list(current_app.config["BEEVENUE_THUMBNAIL_SIZES"].items())[0]
     tiny_thumb_res = current_app.config["BEEVENUE_TINY_THUMBNAIL_SIZE"]
 
-    out_path = paths.thumbnail_path(medium_hash=medium.hash, size=size)
+    out_path = paths.thumbnail_path(medium_hash=medium.hash, size=size, is_animated=False)
 
     with Image.open(out_path, "r") as img:
         thumbnail = img.copy()

@@ -1,7 +1,8 @@
 from typing import Any
 
 from celery import Celery, Task
-from beevenue.core.ffmpeg import generate_animated_task, generate_picks_task
+from beevenue.core.ffmpeg import generate_picks_task
+from beevenue.core.ffmpeg.animated_thumbnails import generate_animated_task
 
 
 def init_app(app: Any) -> None:
@@ -26,7 +27,7 @@ def init_app(app: Any) -> None:
     app.generate_picks_task = gpt_helper
 
     @app.celery.task
-    def gat_helper(medium_id: int, in_path: str) -> None:
-        generate_animated_task(medium_id, in_path)
+    def gat_helper(in_path: str, medium_hash: str) -> None:
+        generate_animated_task(in_path, medium_hash)
 
     app.generate_animated_task = gat_helper

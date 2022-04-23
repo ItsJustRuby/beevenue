@@ -6,6 +6,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from PIL import Image
+
 def _get_timedelta(ffmpeg_stderr: str) -> timedelta:
     """Try to parse ffmpeg output of video length into a timedelta.
 
@@ -49,7 +51,7 @@ def get_length_in_ms(in_path: str) -> int:
     ]
 
     completed_process = subprocess.run(
-        cmd, encoding="utf-8", stderr=subprocess.PIPE, check=False
+        cmd, encoding="utf-8", stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False
     )
 
     delta = _get_timedelta(completed_process.stderr)
