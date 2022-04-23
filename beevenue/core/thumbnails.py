@@ -23,7 +23,9 @@ def _thumbnailable_video(
     if not medium:
         return 404, None
 
-    if not (re.match("video/", medium.mime_type) or medium.mime_type == "image/gif"):
+    if not (
+        re.match("video/", medium.mime_type) or medium.mime_type == "image/gif"
+    ):
         return 400, None
 
     extension = EXTENSIONS[medium.mime_type]
@@ -99,7 +101,9 @@ def _generate_tiny(medium: Medium) -> None:
     size, _ = list(current_app.config["BEEVENUE_THUMBNAIL_SIZES"].items())[0]
     tiny_thumb_res = current_app.config["BEEVENUE_TINY_THUMBNAIL_SIZE"]
 
-    out_path = paths.thumbnail_path(medium_hash=medium.hash, size=size, is_animated=False)
+    out_path = paths.thumbnail_path(
+        medium_hash=medium.hash, size=size, is_animated=False
+    )
 
     with Image.open(out_path, "r") as img:
         thumbnail = img.copy()

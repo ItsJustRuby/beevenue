@@ -33,7 +33,9 @@ def thumbnail_path(medium_hash: str, size: str, is_animated: bool) -> str:
         extension = "mp4"
     else:
         extension = "jpg"
-    return os.path.join(_base_dir(), "thumbs", f"{medium_hash}.{size}.{extension}")
+    return os.path.join(
+        _base_dir(), "thumbs", f"{medium_hash}.{size}.{extension}"
+    )
 
 
 def medium_path(filename: str) -> str:

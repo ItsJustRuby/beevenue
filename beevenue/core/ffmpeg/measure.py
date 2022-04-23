@@ -48,7 +48,11 @@ def get_length_in_ms(in_path: str) -> int:
     ]
 
     completed_process = subprocess.run(
-        cmd, encoding="utf-8", stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False
+        cmd,
+        encoding="utf-8",
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        check=False,
     )
 
     delta = _get_timedelta(completed_process.stderr)

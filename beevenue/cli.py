@@ -52,7 +52,12 @@ def init_cli(app: BeevenueFlask) -> None:
         all = g.fast.get_all_tiny()
         for tiny_medium in all:
             full_medium = g.fast.get_medium(tiny_medium.medium_id)
-            if (full_medium.mime_type.startswith("video/") or (full_medium.mime_type == "image/gif" and "video" in full_medium.innate_tag_names)):
+            if full_medium.mime_type.startswith("video/") or (
+                full_medium.mime_type == "image/gif"
+                and "video" in full_medium.innate_tag_names
+            ):
                 res = generate_animated(full_medium.medium_id)
-                print(f"Generating animated thumb for id {tiny_medium.medium_id}: {res}")
+                print(
+                    f"Generating animated thumb for id {tiny_medium.medium_id}: {res}"
+                )
         print("DONE")

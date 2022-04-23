@@ -16,6 +16,7 @@ from beevenue import paths
 
 from .measure import get_length_in_ms
 
+
 class _AnimatedThumbnailTemporaryDirectory(AbstractContextManager):
     def __init__(self) -> None:
         # The temporary dictionary we use needs to be local in order for
@@ -32,8 +33,7 @@ class _AnimatedThumbnailTemporaryDirectory(AbstractContextManager):
 def _detect_scenes(in_path: str) -> List[Any]:
     video_manager = VideoManager([in_path])
     scene_manager = SceneManager()
-    scene_manager.add_detector(
-        ContentDetector())
+    scene_manager.add_detector(ContentDetector())
 
     video_manager.set_downscale_factor()
     video_manager.start()
@@ -76,11 +76,14 @@ def _pick_scenes(scene_list: List[Any], length_in_ms: int, N: int) -> List[Any]:
 
     return best_scenes
 
+
 def _entire(in_path: str, medium_hash: str) -> None:
     for thumbnail_size, thumbnail_size_pixels in current_app.config[
         "BEEVENUE_THUMBNAIL_SIZES"
     ].items():
-        target_path = paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=True)
+        target_path = paths.thumbnail_path(
+            medium_hash, thumbnail_size, is_animated=True
+        )
 
         cmd = [
             "ffmpeg",
@@ -89,15 +92,21 @@ def _entire(in_path: str, medium_hash: str) -> None:
             f"{in_path}",
             "-vf",
             f"scale={thumbnail_size_pixels}:-2",
-            "-an", # mute the audio
-            "-c:v", "libx264" ,"-pix_fmt", "yuv420p",
-            target_path
+            "-an",  # mute the audio
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            target_path,
         ]
 
         debug("".join(cmd))
         completed_process = subprocess.run(
-            cmd, encoding="utf-8",
-            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False
+            cmd,
+            encoding="utf-8",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            check=False,
         )
         debug(completed_process.stderr)
 
@@ -108,7 +117,7 @@ def generate_animated(in_path: str, medium_hash: str) -> None:
 
 def generate_animated_task(in_path: str, medium_hash: str) -> None:
     slice_count = 5
-    slice_length = 5 # seconds
+    slice_length = 5  # seconds
 
     if in_path.endswith(".gif"):
         _entire(in_path, medium_hash)
@@ -133,8 +142,8 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
             i = 0
             for scene in best_scenes:
                 scene_length_in_milliseconds = (
-                    (scene[1] - scene[0]).get_seconds() * 1000
-                )
+                    scene[1] - scene[0]
+                ).get_seconds() * 1000
                 if scene_length_in_milliseconds < slice_length * 1000:
                     trim_in_milliseconds = scene_length_in_milliseconds
                 else:
@@ -151,11 +160,14 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
                     f"{in_path}",
                     "-vf",
                     f"scale={thumbnail_size_pixels}:-2",
-                    "-an", # mute the audio
-                    "-c:v", "libx264" ,"-pix_fmt", "yuv420p",
+                    "-an",  # mute the audio
+                    "-c:v",
+                    "libx264",
+                    "-pix_fmt",
+                    "yuv420p",
                     "-t",
                     str(delta),
-                    dir.filename(f"output_{i}.mp4")
+                    dir.filename(f"output_{i}.mp4"),
                 ]
 
                 completed_process = subprocess.run(
@@ -163,22 +175,20 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
                     encoding="utf-8",
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.PIPE,
-                    check=False
+                    check=False,
                 )
-                
+
                 i += 1
-            
+
             playlist_filename = dir.filename("temp.txt")
             with open(playlist_filename, "w") as plalist_file:
                 for j in range(0, i):
                     filename = f"output_{j}.mp4"
                     plalist_file.write(f"file '{filename}'\n")
-                
+
             # concatenate those into a video
             target_path = paths.thumbnail_path(
-                medium_hash,
-                thumbnail_size,
-                is_animated=True
+                medium_hash, thumbnail_size, is_animated=True
             )
 
             cmd = [
@@ -190,7 +200,7 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
                 playlist_filename,
                 "-c",
                 "copy",
-                target_path
+                target_path,
             ]
             debug("".join(cmd))
             completed_process = subprocess.run(
@@ -198,6 +208,6 @@ def generate_animated_task(in_path: str, medium_hash: str) -> None:
                 encoding="utf-8",
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
-                check=False
+                check=False,
             )
             debug(completed_process.stderr)

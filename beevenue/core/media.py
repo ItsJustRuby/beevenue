@@ -118,7 +118,9 @@ def delete_medium_files(medium_hash: str, extension: str) -> None:
 
     for thumbnail_size in current_app.config["BEEVENUE_THUMBNAIL_SIZES"].keys():
         for is_animated in [False, True]:
-            path = paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=is_animated)
+            path = paths.thumbnail_path(
+                medium_hash, thumbnail_size, is_animated=is_animated
+            )
             _try_and_remove(path)
 
 

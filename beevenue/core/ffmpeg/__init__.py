@@ -48,7 +48,9 @@ def thumbnails(medium_hash: str, mime_type: str) -> ThumbnailingResult:
 def _set_thumbnail(
     medium_hash: str, thumbnail_size: str, raw_bytes: bytes
 ) -> None:
-    out_path = Path(paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=False))
+    out_path = Path(
+        paths.thumbnail_path(medium_hash, thumbnail_size, is_animated=False)
+    )
 
     with open(out_path, "wb") as out_file:
         out_file.write(raw_bytes)
