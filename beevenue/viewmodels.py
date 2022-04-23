@@ -63,7 +63,7 @@ class _PaginationSchema(Schema):
     items = fields.Nested(
         _PaginationMediumSchema,
         many=True,
-        only=["medium_id", "medium_hash", "tiny_thumbnail", "mime_type"], # TODO(RS) Try me
+        only=["medium_id", "medium_hash", "tiny_thumbnail", "mime_type"],
     )
     page_count = fields.Int(data_key="pageCount")
     page_number = fields.Int(data_key="pageNumber")

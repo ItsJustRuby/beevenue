@@ -1,4 +1,3 @@
-from logging import warning
 from typing import List, Set
 
 from beevenue.flask import g

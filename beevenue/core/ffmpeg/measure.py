@@ -1,12 +1,9 @@
-from pathlib import Path
 import re
 from datetime import timedelta
-from math import ceil, inf
-from pathlib import Path
+from math import ceil
 import re
 import subprocess
 
-from PIL import Image
 
 def _get_timedelta(ffmpeg_stderr: str) -> timedelta:
     """Try to parse ffmpeg output of video length into a timedelta.
