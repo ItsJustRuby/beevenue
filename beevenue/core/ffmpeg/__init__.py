@@ -35,12 +35,11 @@ def thumbnails(medium_hash: str, mime_type: str) -> ThumbnailingResult:
     extension = EXTENSIONS[mime_type]
     in_path = paths.medium_path((f"{medium_hash}.{extension}"))
 
-    generate_animated(in_path, medium_hash)
-
+    if mime_type == "image/gif" or re.match("video/", mime_type):
+        generate_animated(in_path, medium_hash)
+        return video_thumbnails(in_path, extensionless_out_path)
     if re.match("image/", mime_type):
         return image_thumbnails(in_path, extensionless_out_path)
-    if re.match("video/", mime_type):
-        return video_thumbnails(in_path, extensionless_out_path)
 
     raise Exception(f"Cannot create thumbnails for mime_type {mime_type}")
 
